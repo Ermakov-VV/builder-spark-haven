@@ -4,25 +4,7 @@ import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <rect x="6" y="3" width="12" height="18" rx="2" ry="2" />
-      <path d="M6 3v18" />
-      <path d="M8 7h6M8 11h6M8 15h6" />
-    </svg>
-  );
+
 function BulletIcon() {
   return (
     <svg
