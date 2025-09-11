@@ -4,6 +4,8 @@ import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import ComputerIcon from "@mui/icons-material/Computer";
+import ConstructionIcon from "@mui/icons-material/Construction";
 
 function BulletIcon() {
   return (
@@ -36,9 +38,28 @@ export default function SidebarMenu() {
       <SimpleTreeView
         className="sidebar-tree"
         aria-label="sidebar navigation"
-        defaultExpandedItems={["reports"]}
+        defaultExpandedItems={["tools", "reports"]}
         slots={{ expandIcon: ChevronRightIcon, collapseIcon: ExpandMoreIcon }}
       >
+        <TreeItem
+          itemId="home"
+          label={<TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />}
+        />
+
+        <TreeItem
+          itemId="tools"
+          label={<TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />}
+        >
+          <TreeItem
+            itemId="tools.srvp"
+            label={<TreeLabel icon={<BulletIcon />} text="Маршрутизация SRVP" />}
+          />
+          <TreeItem
+            itemId="tools.geocode"
+            label={<TreeLabel icon={<BulletIcon />} text="Геокодирование" />}
+          />
+        </TreeItem>
+
         <TreeItem
           itemId="reports"
           label={<TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />}
