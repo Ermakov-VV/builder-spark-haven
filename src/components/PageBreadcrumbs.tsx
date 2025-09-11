@@ -23,10 +23,9 @@ function useRouteMeta(pathname: string) {
   }
 
   const first = `/${segments[0]}`;
-  if (first === "/tools") {
-    crumbs.push({ label: titles[first] });
-  } else if (first === "/reports") {
-    crumbs.push({ label: titles[first] });
+  if (first === "/tools" || first === "/reports") {
+    const isIndex = segments.length === 1;
+    crumbs.push({ label: titles[first], to: isIndex ? undefined : first });
   }
 
   const full = `/${segments.join("/")}`;
