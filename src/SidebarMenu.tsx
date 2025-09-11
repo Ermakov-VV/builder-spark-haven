@@ -6,7 +6,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ComputerIcon from "@mui/icons-material/Computer";
 import ConstructionIcon from "@mui/icons-material/Construction";
-import Tooltip from "@mui/material/Tooltip";
 import { Link } from "react-router-dom";
 
 function BulletIcon() {
@@ -27,7 +26,7 @@ function BulletIcon() {
 
 function TreeLabel({ icon, text }: { icon?: React.ReactNode; text: string }) {
   return (
-    <span className="tree-item-label">
+    <span className="tree-item-label" title={text} aria-label={text}>
       {icon && <span className="tree-item-label-icon">{icon}</span>}
       <span className="tree-item-label-text">{text}</span>
     </span>
@@ -46,21 +45,15 @@ export default function SidebarMenu() {
         <TreeItem
           itemId="home"
           label={
-            <Tooltip title="Главная" placement="right">
-              <Link to="/" className="tree-link">
-                <TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />
-              </Link>
-            </Tooltip>
+            <Link to="/" className="tree-link" title="Главная" aria-label="Главная">
+              <TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />
+            </Link>
           }
         />
 
         <TreeItem
           itemId="tools"
-          label={
-            <Tooltip title="Инструменты" placement="right">
-              <TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />
-            </Tooltip>
-          }
+          label={<TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />}
         >
           <TreeItem
             itemId="tools.srvp"
@@ -74,11 +67,7 @@ export default function SidebarMenu() {
 
         <TreeItem
           itemId="reports"
-          label={
-            <Tooltip title="Отчеты" placement="right">
-              <TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />
-            </Tooltip>
-          }
+          label={<TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />}
         >
           <TreeItem
             itemId="reports.transport"
