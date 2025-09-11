@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import { DateRangePicker, CustomProvider, CheckPicker } from "rsuite";
+import { DateRangePicker, CustomProvider, CheckPicker, Checkbox } from "rsuite";
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
@@ -84,6 +84,7 @@ export default function ReportsTransport() {
                 container={getDialogContainer}
                 placement="bottomStart"
                 searchable={false}
+                block
                 renderMenuItem={(label, item) => (
                   <div className="planning-item">
                     <span className="col-mpt">{item.mpt}</span>
@@ -98,20 +99,24 @@ export default function ReportsTransport() {
                     </span>
                   );
                 }}
-                renderExtraFooter={() => (
-                  <div className="planning-picker-footer">
-                    <button
-                      type="button"
-                      className="planning-footer-action"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedPlanning(planningPlaces.map((p) => p.value));
-                      }}
-                    >
-                      Выбрать все
-                    </button>
-                  </div>
-                )}
+                renderExtraFooter={() => {
+                  const allValues = planningPlaces.map((p) => p.value);
+                  const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
+                  const someSelected = selectedPlanning.length > 0 && !allSelected;
+                  return (
+                    <div className="planning-picker-footer">
+                      <Checkbox
+                        checked={allSelected}
+                        indeterminate={someSelected}
+                        onChange={(_val, checked) => {
+                          setSelectedPlanning(checked ? allValues : []);
+                        }}
+                      >
+                        Выбрать все
+                      </Checkbox>
+                    </div>
+                  );
+                }}
               />
             </div>
           </CustomProvider>
