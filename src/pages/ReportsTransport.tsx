@@ -46,8 +46,7 @@ export default function ReportsTransport() {
         open={dialogOpen}
         onClose={handleClose}
         aria-labelledby="transport-report-dialog-title"
-        fullWidth
-        maxWidth="sm"
+        PaperProps={{ sx: { width: "auto", maxWidth: "none" } }}
       >
         <DialogTitle id="transport-report-dialog-title">Выберите параметры</DialogTitle>
         <DialogContent>
