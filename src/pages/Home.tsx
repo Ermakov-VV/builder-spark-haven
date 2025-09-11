@@ -15,7 +15,7 @@ export default function Home() {
       <section className="home-section">
         <h2 className="section-title">Инструменты</h2>
         <div className="cards-grid">
-          <Card className="feature-card" variant="outlined">
+          <Card className="feature-card" elevation={3}>
             <CardActionArea component={Link} to="/tools/srvp">
               <CardHeader avatar={<AltRouteIcon />} title={<span className="feature-card-title">Маршрутизация SRVP</span>} />
               <CardContent className="feature-card-content">
@@ -25,7 +25,7 @@ export default function Home() {
               </CardContent>
             </CardActionArea>
           </Card>
-          <Card className="feature-card" variant="outlined">
+          <Card className="feature-card" elevation={3}>
             <CardActionArea component={Link} to="/tools/geocode">
               <CardHeader avatar={<PlaceIcon />} title={<span className="feature-card-title">Геокодирование</span>} />
               <CardContent className="feature-card-content">
@@ -41,7 +41,7 @@ export default function Home() {
       <section className="home-section">
         <h2 className="section-title">Отчеты</h2>
         <div className="cards-grid">
-          <Card className="feature-card" variant="outlined">
+          <Card className="feature-card" elevation={3}>
             <CardActionArea component={Link} to="/reports/transport">
               <CardHeader avatar={<LocalShippingIcon />} title={<span className="feature-card-title">Отчет по транспортировкам</span>} />
               <CardContent className="feature-card-content">
