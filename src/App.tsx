@@ -1,7 +1,9 @@
 import * as React from "react";
+import { useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import ToolsSrvp from "./pages/ToolsSrvp";
@@ -11,13 +13,17 @@ import HeaderRouteInfo from "./HeaderRouteInfo";
 import SidebarMenu from "./SidebarMenu";
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
     <>
       <CssBaseline enableColorScheme />
-      <div className="viewport-grid-128x64 layout-grid">
+      <div className={`viewport-grid-128x64 layout-grid${sidebarOpen ? "" : " sidebar-collapsed"}`}>
         <header className="app-header-3">
           <div className="app-header-content">
             <div className="app-header-left">
+              <IconButton aria-label="toggle sidebar" className="header-action-btn" size="small" onClick={() => setSidebarOpen((v) => !v)}>
+                <MenuIcon />
+              </IconButton>
               <img src="/vite.svg" alt="Логотип" className="app-header-logo" />
               <span className="app-header-brand">
                 <span>ARMTEK</span>
