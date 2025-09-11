@@ -53,25 +53,45 @@ export default function SidebarMenu() {
 
         <TreeItem
           itemId="tools"
-          label={<TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />}
+          label={
+            <Link to="/tools" className="tree-link" title="Инструменты" aria-label="Инструменты">
+              <TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />
+            </Link>
+          }
         >
           <TreeItem
             itemId="tools.srvp"
-            label={<TreeLabel icon={<BulletIcon />} text="Маршрутизация SRVP" />}
+            label={
+            <Link to="/tools/srvp" className="tree-link" title="Маршрутизация SRVP" aria-label="Маршрутизация SRVP">
+              <TreeLabel icon={<BulletIcon />} text="Маршрутизация SRVP" />
+            </Link>
+          }
           />
           <TreeItem
             itemId="tools.geocode"
-            label={<TreeLabel icon={<BulletIcon />} text="Геокодирование" />}
+            label={
+            <Link to="/tools/geocode" className="tree-link" title="Геокодирование" aria-label="Геокодирование">
+              <TreeLabel icon={<BulletIcon />} text="Геокодирование" />
+            </Link>
+          }
           />
         </TreeItem>
 
         <TreeItem
           itemId="reports"
-          label={<TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />}
+          label={
+            <Link to="/reports" className="tree-link" title="Отчеты" aria-label="Отчеты">
+              <TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />
+            </Link>
+          }
         >
           <TreeItem
             itemId="reports.transport"
-            label={<TreeLabel icon={<BulletIcon />} text="Отчет по транспортировкам" />}
+            label={
+            <Link to="/reports/transport" className="tree-link" title="Отчет по транспортировкам" aria-label="Отчет по транспортировкам">
+              <TreeLabel icon={<BulletIcon />} text="Отчет по транспортировкам" />
+            </Link>
+          }
           />
         </TreeItem>
       </SimpleTreeView>
