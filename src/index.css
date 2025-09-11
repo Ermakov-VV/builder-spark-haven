@@ -67,6 +67,14 @@
 .app-header-brand { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; color: #ffffff; font-weight: 700; }
 .app-header-brand-accent { color: #ff8b33; }
 .app-header-right { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Header route info */
+.app-header-route { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px; color: #ffffff; }
+.app-header-title { color: #ffffff; font-weight: 700; margin: 0; }
+.header-breadcrumbs { color: #ffffff; }
+.header-breadcrumb-link { color: #ffffff; text-decoration: none; }
+.header-breadcrumb-link:hover { text-decoration: underline; }
+.header-breadcrumb-text { color: #ffffff; opacity: 0.85; }
 .header-action-btn .MuiSvgIcon-root { color: #ffffff; }
 
 /* Sidebar content container */
