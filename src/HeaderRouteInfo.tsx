@@ -1,7 +1,6 @@
 import * as React from "react";
-import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Typography from "@mui/material/Typography";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 function useRouteMeta(pathname: string) {
   // Map full paths to titles
@@ -49,19 +48,6 @@ export default function HeaderRouteInfo() {
       <Typography component="h1" variant="subtitle1" className="app-header-title">
         {title}
       </Typography>
-      <Breadcrumbs aria-label="breadcrumb" className="header-breadcrumbs" separator="/">
-        {crumbs.map((c, idx) =>
-          c.to ? (
-            <Link key={idx} to={c.to} className="header-breadcrumb-link">
-              {c.label}
-            </Link>
-          ) : (
-            <Typography key={idx} variant="body2" className="header-breadcrumb-text">
-              {c.label}
-            </Typography>
-          ),
-        )}
-      </Breadcrumbs>
     </div>
   );
 }
