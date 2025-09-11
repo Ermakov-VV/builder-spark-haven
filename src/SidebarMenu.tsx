@@ -19,6 +19,22 @@ function LeafIcon() {
   );
 }
 
+function BulletIcon() {
+  return (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="5" cy="5" r="4" />
+    </svg>
+  );
+}
+
 function TreeLabel({ icon, text }: { icon?: React.ReactNode; text: string }) {
   return (
     <span className="tree-item-label">
@@ -43,7 +59,7 @@ export default function SidebarMenu() {
         >
           <TreeItem
             itemId="reports.transport"
-            label={<TreeLabel text="Отчет по транспортировкам" />}
+            label={<TreeLabel icon={<BulletIcon />} text="Отчет по транспортировкам" />}
           />
         </TreeItem>
       </SimpleTreeView>
