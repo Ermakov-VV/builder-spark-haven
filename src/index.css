@@ -1,1 +1,27 @@
 @import "tailwindcss";
+
+:root {
+  --grid-cols: 128;
+  --grid-rows: 64;
+  --grid-line-color: rgba(0, 0, 0, 0.12);
+  --grid-background: #fff;
+}
+
+.viewport-grid-128x64 {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--grid-background);
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--grid-line-color) 0 1px,
+      transparent 1px calc(100%/var(--grid-cols))
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--grid-line-color) 0 1px,
+      transparent 1px calc(100%/var(--grid-rows))
+    );
+  background-repeat: no-repeat, no-repeat;
+  background-size: 100% 100%;
+}
