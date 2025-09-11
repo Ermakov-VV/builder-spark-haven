@@ -55,7 +55,8 @@ export default function ReportsTransport() {
             Укажите интервал дат для формирования отчета.
           </DialogContentText>
           <CustomProvider locale={ruRU}>
-            <div className="report-date-range">
+            <div className="report-date-range-row">
+              <span className="report-date-range-label">Интервал дат</span>
               <DateRangePicker
                 value={dateRange}
                 onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
