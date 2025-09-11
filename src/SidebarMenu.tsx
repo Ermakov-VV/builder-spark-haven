@@ -6,6 +6,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ComputerIcon from "@mui/icons-material/Computer";
 import ConstructionIcon from "@mui/icons-material/Construction";
+import Tooltip from "@mui/material/Tooltip";
 import { Link } from "react-router-dom";
 
 function BulletIcon() {
@@ -45,15 +46,21 @@ export default function SidebarMenu() {
         <TreeItem
           itemId="home"
           label={
-            <Link to="/" className="tree-link">
-              <TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />
-            </Link>
+            <Tooltip title="Главная" placement="right">
+              <Link to="/" className="tree-link">
+                <TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />
+              </Link>
+            </Tooltip>
           }
         />
 
         <TreeItem
           itemId="tools"
-          label={<TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />}
+          label={
+            <Tooltip title="Инструменты" placement="right">
+              <TreeLabel icon={<ConstructionIcon fontSize="small" />} text="Инструменты" />
+            </Tooltip>
+          }
         >
           <TreeItem
             itemId="tools.srvp"
@@ -67,7 +74,11 @@ export default function SidebarMenu() {
 
         <TreeItem
           itemId="reports"
-          label={<TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />}
+          label={
+            <Tooltip title="Отчеты" placement="right">
+              <TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />
+            </Tooltip>
+          }
         >
           <TreeItem
             itemId="reports.transport"
