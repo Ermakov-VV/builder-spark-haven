@@ -8,16 +8,15 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
-import type { Dayjs } from "dayjs";
+import { DateRangePicker } from "rsuite";
+import ruRU from "rsuite/esm/locales/ru_RU";
+import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function ReportsTransport() {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = React.useState(true);
-  const [dateRange, setDateRange] = React.useState<[Dayjs | null, Dayjs | null]>([null, null]);
+  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
 
   const handleApply = () => {
     setDialogOpen(false);
@@ -49,16 +48,16 @@ export default function ReportsTransport() {
           <DialogContentText>
             Укажите интервал дат для формирования отчета.
           </DialogContentText>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <div className="report-date-range">
-              <DateRangePicker
-                value={dateRange}
-                onChange={(newValue) => setDateRange(newValue)}
-                localeText={{ start: "Дата начала", end: "Дата окончания" }}
-                slotProps={{ textField: { fullWidth: true, margin: "normal" } }}
-              />
-            </div>
-          </LocalizationProvider>
+          <div className="report-date-range">
+            <DateRangePicker
+              value={dateRange}
+              onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
+              locale={ruRU}
+              format="dd.MM.yyyy"
+              placeholder="Дата начала — Дата окончания"
+              className="report-date-range-input"
+            />
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleExit} color="inherit">Выйти</Button>
