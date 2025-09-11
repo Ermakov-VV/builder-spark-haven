@@ -3,7 +3,7 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-function NotebookIcon() {
+import AssignmentIcon from "@mui/icons-material/Assignment";
   return (
     <svg
       width="18"
@@ -23,8 +23,6 @@ function NotebookIcon() {
       <path d="M8 7h6M8 11h6M8 15h6" />
     </svg>
   );
-}
-
 function BulletIcon() {
   return (
     <svg
@@ -61,7 +59,7 @@ export default function SidebarMenu() {
       >
         <TreeItem
           itemId="reports"
-          label={<TreeLabel icon={<NotebookIcon />} text="Отчеты" />}
+          label={<TreeLabel icon={<AssignmentIcon fontSize="small" />} text="Отчеты" />}
         >
           <TreeItem
             itemId="reports.transport"
