@@ -118,26 +118,11 @@
 
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
-/* Background silhouettes on Home */
-.home-page::before {
-  content: "";
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  width: 200px;
-  height: 200px;
-  background: no-repeat center/contain url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><circle cx='100' cy='100' r='50' fill='%23d6d6d8'/><rect x='96' y='10' width='8' height='20' rx='2' fill='%23d6d6d8'/><rect x='96' y='170' width='8' height='20' rx='2' fill='%23d6d6d8'/><rect x='10' y='96' width='20' height='8' rx='2' fill='%23d6d6d8'/><rect x='170' y='96' width='20' height='8' rx='2' fill='%23d6d6d8'/><rect x='96' y='10' width='8' height='20' rx='2' fill='%23d6d6d8' transform='rotate(45 100 100)'/><rect x='96' y='170' width='8' height='20' rx='2' fill='%23d6d6d8' transform='rotate(45 100 100)'/><rect x='96' y='10' width='8' height='20' rx='2' fill='%23d6d6d8' transform='rotate(90 100 100)'/><rect x='96' y='170' width='8' height='20' rx='2' fill='%23d6d6d8' transform='rotate(90 100 100)'/><circle cx='100' cy='100' r='30' fill='%23ebebec'/></svg>");
-  pointer-events: none;
-}
+/* Background silhouettes on Home (disabled for solid color) */
+.home-page::before,
 .home-page::after {
-  content: "";
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-  width: 360px;
-  height: 180px;
-  background: no-repeat center/contain url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 180'><rect x='20' y='60' width='180' height='70' rx='10' fill='%23d6d6d8'/><rect x='200' y='80' width='70' height='50' rx='8' fill='%23d6d6d8'/><rect x='215' y='90' width='40' height='20' rx='4' fill='%23ebebec'/><circle cx='90' cy='130' r='16' fill='%23d6d6d8'/><circle cx='240' cy='130' r='16' fill='%23d6d6d8'/></svg>");
-  pointer-events: none;
+  content: none;
+  background: none;
 }
 .home-section { margin: 16px 0 24px; }
 .section-title { margin: 0 0 12px; font-weight: 700; font-size: 16px; }
