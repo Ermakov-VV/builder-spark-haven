@@ -26,6 +26,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "^7.6.0",
+    "rsuite": "^5.83.3",
     "tailwindcss": "latest"
   },
   "devDependencies": {
