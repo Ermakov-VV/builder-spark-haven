@@ -21,7 +21,7 @@ export default function SidebarMenu() {
         className="sidebar-tree"
         aria-label="sidebar navigation"
         defaultExpandedItems={["reports"]}
-        slots={{ expandIcon: ExpandMoreIcon, collapseIcon: ChevronRightIcon }}
+        slots={{ expandIcon: ChevronRightIcon, collapseIcon: ExpandMoreIcon }}
       >
         <TreeItem
           itemId="reports"
