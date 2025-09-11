@@ -37,23 +37,47 @@ function useRouteMeta(pathname: string) {
   return { title: title || titles[first] || titles["/"], crumbs };
 }
 
-export default function PageBreadcrumbs() {
+export default function PageBreadcrumbs({ onCurrentClick }: { onCurrentClick?: () => void }) {
   const { pathname } = useLocation();
   const { crumbs } = useRouteMeta(pathname);
 
   return (
     <Breadcrumbs aria-label="breadcrumb" className="page-breadcrumbs" separator="/">
-      {crumbs.map((c, idx) =>
-        c.to ? (
-          <Link key={idx} to={c.to} className="page-breadcrumb-link">
-            {c.label}
-          </Link>
-        ) : (
+      {crumbs.map((c, idx) => {
+        if (c.to) {
+          return (
+            <Link key={idx} to={c.to} className="page-breadcrumb-link">
+              {c.label}
+            </Link>
+          );
+        }
+        const isCurrent = idx === crumbs.length - 1;
+        if (isCurrent && onCurrentClick) {
+          return (
+            <Typography
+              key={idx}
+              variant="body2"
+              className="page-breadcrumb-text page-breadcrumb-current-action"
+              role="button"
+              tabIndex={0}
+              onClick={onCurrentClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onCurrentClick();
+                }
+              }}
+            >
+              {c.label}
+            </Typography>
+          );
+        }
+        return (
           <Typography key={idx} variant="body2" className="page-breadcrumb-text">
             {c.label}
           </Typography>
-        ),
-      )}
+        );
+      })}
     </Breadcrumbs>
   );
 }
