@@ -39,6 +39,19 @@
   background: #30393f;
 }
 
+/* Top header occupying 3 rows, above sidebar */
+.app-header-3 {
+  grid-column: 1 / -1;
+  grid-row: 1 / span 3;
+  background: #30393f;
+  color: #ffffff;
+  z-index: 10;
+}
+.app-header-content { display: flex; align-items: center; justify-content: space-between; height: 100%; padding: 0 16px; }
+.app-header-left { display: inline-flex; align-items: center; gap: 8px; }
+.app-header-logo { height: 20px; display: block; }
+.app-header-right { display: inline-flex; align-items: center; gap: 8px; }
+
 /* Sidebar content container */
 .sidebar-nav {
   height: 100%;
