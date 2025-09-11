@@ -54,19 +54,21 @@ export default function ReportsTransport() {
           <DialogContentText>
             Укажите интервал дат для формирования отчета.
           </DialogContentText>
-          <div className="report-date-range">
-            <DateRangePicker
-              value={dateRange}
-              onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
-              locale={ruRU}
-              format="dd.MM.yyyy"
-              placeholder="Дата начала — Дата окончания"
-              className="report-date-range-input"
-              container={getDialogContainer}
-              preventOverflow
-              placement="bottomStart"
-            />
-          </div>
+          <CustomProvider locale={ruRU}>
+            <div className="report-date-range">
+              <DateRangePicker
+                value={dateRange}
+                onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
+                locale={ruRU}
+                format="dd.MM.yyyy"
+                placeholder="Дата начала — Дата окончания"
+                className="report-date-range-input"
+                container={getDialogContainer}
+                preventOverflow
+                placement="bottomStart"
+              />
+            </div>
+          </CustomProvider>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleExit} color="inherit">Выйти</Button>
