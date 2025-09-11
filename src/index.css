@@ -46,6 +46,7 @@
   background: #30393f;
   color: #ffffff;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 .app-header-content { display: flex; align-items: center; justify-content: space-between; height: 100%; padding: 0 16px; }
 .app-header-left { display: inline-flex; align-items: center; gap: 8px; }
