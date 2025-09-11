@@ -96,6 +96,9 @@
 .rs-picker-menu .planning-item { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: center; }
 .rs-picker-menu .planning-item .col-mpt { font-weight: 600; }
 .rs-picker-menu .planning-menu-header { display: grid; grid-template-columns: 80px 1fr; gap: 8px; padding: 4px 8px; font-size: 12px; opacity: 0.7; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.planning-picker-footer { padding: 6px 8px; border-top: 1px solid rgba(0,0,0,0.08); }
+.planning-footer-action { background: none; border: 0; color: #1976d2; cursor: pointer; padding: 4px 0; }
+.planning-footer-action:hover { text-decoration: underline; }
 .header-action-btn .MuiSvgIcon-root { color: #ffffff; }
 
 /* Sidebar content container */
