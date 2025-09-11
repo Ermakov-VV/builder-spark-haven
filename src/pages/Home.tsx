@@ -8,10 +8,12 @@ import AltRouteIcon from "@mui/icons-material/AltRoute";
 import PlaceIcon from "@mui/icons-material/Place";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import { Link } from "react-router-dom";
+import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function Home() {
   return (
     <div className="home-page">
+      <PageBreadcrumbs />
       <section className="home-section">
         <h2 className="section-title">Инструменты</h2>
         <div className="cards-grid">
