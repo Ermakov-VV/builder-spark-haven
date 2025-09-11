@@ -61,7 +61,8 @@ export default function ReportsTransport() {
                 onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
                 locale={ruRU}
                 format="dd.MM.yyyy"
-                placeholder="Дата начала — Дата окончания"
+                character=" - "
+                placeholder="Дата начала - Дата окончания"
                 className="report-date-range-input"
                 container={getDialogContainer}
                 preventOverflow
