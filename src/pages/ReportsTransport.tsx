@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import { DateRangePicker } from "rsuite";
+import { DateRangePicker, CustomProvider } from "rsuite";
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
