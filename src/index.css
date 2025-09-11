@@ -87,6 +87,15 @@
 }
 .home-title { margin: 0 0 12px; font-weight: 700; }
 
+/* Home sections based on first-level menu (excluding Главная) */
+.home-page { display: block; }
+.home-section { margin: 16px 0 24px; }
+.section-title { margin: 0 0 12px; font-weight: 700; font-size: 16px; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.feature-card { border-radius: 8px; }
+.feature-card-title { font-weight: 600; }
+.feature-card-content p { margin: 0; }
+
 /* Ensure MUI tree inherits white text and icons */
 .sidebar-tree .MuiTreeItem-label { color: #ffffff; }
 .sidebar-tree .MuiSvgIcon-root { color: #ffffff; }
