@@ -17,6 +17,7 @@ export default function ReportsTransport() {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = React.useState(true);
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
+  const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
   const handleApply = () => {
     setDialogOpen(false);
@@ -56,6 +57,9 @@ export default function ReportsTransport() {
               format="dd.MM.yyyy"
               placeholder="Дата начала — Дата окончания"
               className="report-date-range-input"
+              container={getDialogContainer}
+              preventOverflow
+              placement="bottomStart"
             />
           </div>
         </DialogContent>
