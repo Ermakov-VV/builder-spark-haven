@@ -6,8 +6,10 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import ToolsIndex from "./pages/ToolsIndex";
 import ToolsSrvp from "./pages/ToolsSrvp";
 import ToolsGeocode from "./pages/ToolsGeocode";
+import ReportsIndex from "./pages/ReportsIndex";
 import ReportsTransport from "./pages/ReportsTransport";
 import HeaderRouteInfo from "./HeaderRouteInfo";
 import SidebarMenu from "./SidebarMenu";
@@ -44,8 +46,10 @@ export default function App() {
         <main className="content-area">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/tools" element={<ToolsIndex />} />
             <Route path="/tools/srvp" element={<ToolsSrvp />} />
             <Route path="/tools/geocode" element={<ToolsGeocode />} />
+            <Route path="/reports" element={<ReportsIndex />} />
             <Route path="/reports/transport" element={<ReportsTransport />} />
           </Routes>
         </main>
