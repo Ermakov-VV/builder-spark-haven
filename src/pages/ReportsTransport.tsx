@@ -10,15 +10,14 @@ import {
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import type { Dayjs } from "dayjs";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 
 export default function ReportsTransport() {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = React.useState(true);
-  const [dateFrom, setDateFrom] = React.useState<Dayjs | null>(null);
-  const [dateTo, setDateTo] = React.useState<Dayjs | null>(null);
+  const [dateRange, setDateRange] = React.useState<[Dayjs | null, Dayjs | null]>([null, null]);
 
   const handleApply = () => {
     setDialogOpen(false);
@@ -52,16 +51,10 @@ export default function ReportsTransport() {
           </DialogContentText>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <div className="report-date-range">
-              <DatePicker
-                label="Дата начала"
-                value={dateFrom}
-                onChange={(newValue) => setDateFrom(newValue)}
-                slotProps={{ textField: { fullWidth: true, margin: "normal" } }}
-              />
-              <DatePicker
-                label="Дата окончания"
-                value={dateTo}
-                onChange={(newValue) => setDateTo(newValue)}
+              <DateRangePicker
+                value={dateRange}
+                onChange={(newValue) => setDateRange(newValue)}
+                localeText={{ start: "Дата начала", end: "Дата окончания" }}
                 slotProps={{ textField: { fullWidth: true, margin: "normal" } }}
               />
             </div>
