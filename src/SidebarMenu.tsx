@@ -3,18 +3,24 @@ import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-function LeafIcon() {
+function NotebookIcon() {
   return (
     <svg
       width="18"
       height="18"
       viewBox="0 0 24 24"
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
       focusable="false"
     >
-      <path d="M5 21c4.97 0 9-4.03 9-9 0-3.87 3.13-7 7-7 .55 0 1 .45 1 1 0 6.63-5.37 12-12 12-.55 0-1 .45-1 1s.45 1 1 1zM5 21c-1.1 0-2-.9-2-2 0-4.42 3.58-8 8-8 1.1 0 2 .9 2 2 0 4.42-3.58 8-8 8z"/>
+      <rect x="6" y="3" width="12" height="18" rx="2" ry="2" />
+      <path d="M6 3v18" />
+      <path d="M8 7h6M8 11h6M8 15h6" />
     </svg>
   );
 }
@@ -55,7 +61,7 @@ export default function SidebarMenu() {
       >
         <TreeItem
           itemId="reports"
-          label={<TreeLabel icon={<LeafIcon />} text="Отчеты" />}
+          label={<TreeLabel icon={<NotebookIcon />} text="Отчеты" />}
         >
           <TreeItem
             itemId="reports.transport"
