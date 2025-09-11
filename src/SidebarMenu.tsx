@@ -6,6 +6,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ComputerIcon from "@mui/icons-material/Computer";
 import ConstructionIcon from "@mui/icons-material/Construction";
+import { Link } from "react-router-dom";
 
 function BulletIcon() {
   return (
@@ -43,7 +44,11 @@ export default function SidebarMenu() {
       >
         <TreeItem
           itemId="home"
-          label={<TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />}
+          label={
+            <Link to="/" className="tree-link">
+              <TreeLabel icon={<ComputerIcon fontSize="small" />} text="Главная" />
+            </Link>
+          }
         />
 
         <TreeItem

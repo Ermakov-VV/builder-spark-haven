@@ -2,6 +2,8 @@ import * as React from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
 import SidebarMenu from "./SidebarMenu";
 
 export default function App() {
@@ -28,6 +30,11 @@ export default function App() {
         <aside className="sidebar-left-22">
           <SidebarMenu />
         </aside>
+        <main className="content-area">
+          <Routes>
+            <Route path="/" element={<Home />} />
+          </Routes>
+        </main>
       </div>
     </>
   );
