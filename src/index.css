@@ -89,7 +89,7 @@
 .MuiDialog-root .rs-picker-popup { z-index: 1500; }
 .report-date-range-row { display: flex; align-items: center; gap: 12px; }
 .report-date-range-label { min-width: 120px; opacity: 0.8; }
-.report-date-range-input { flex: 1; width: 100%; }
+.report-date-range-input { flex: 0 0 auto; width: 280px; max-width: 100%; }
 .header-action-btn .MuiSvgIcon-root { color: #ffffff; }
 
 /* Sidebar content container */
