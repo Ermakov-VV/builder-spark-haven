@@ -86,6 +86,7 @@
 .page-breadcrumb-current-action { cursor: pointer; }
 .page-breadcrumb-current-action:hover { text-decoration: underline; }
 .report-date-range-input { width: 100%; }
+.MuiDialog-root .rs-picker-popup { z-index: 1500; }
 .header-action-btn .MuiSvgIcon-root { color: #ffffff; }
 
 /* Sidebar content container */
