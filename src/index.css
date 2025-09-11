@@ -82,8 +82,10 @@
 .sidebar-tree .MuiTreeItem-label { color: #ffffff; }
 .sidebar-tree .MuiSvgIcon-root { color: #ffffff; }
 
-/* Offset only the 'reports' item by 10px */
-.sidebar-tree li[id$="-reports"] > .MuiTreeItem-content { margin-top: 10px; }
+/* Inter-item vertical spacing */
+.sidebar-tree .MuiTreeItem-root + .MuiTreeItem-root > .MuiTreeItem-content { margin-top: 10px; }
+/* First item (home) top offset equal to spacing */
+.sidebar-tree li[id$="-home"] > .MuiTreeItem-content { margin-top: 10px; }
 
 /* Custom label structure */
 .tree-item-label { display: inline-flex; align-items: center; gap: 8px; color: #ffffff; }
