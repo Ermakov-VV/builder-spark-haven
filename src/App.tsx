@@ -13,6 +13,10 @@ export default function App() {
           <div className="app-header-content">
             <div className="app-header-left">
               <img src="/vite.svg" alt="Логотип" className="app-header-logo" />
+              <span className="app-header-brand">
+                <span>ARMTEK</span>
+                <span className="app-header-brand-accent">RME</span>
+              </span>
             </div>
             <div className="app-header-right">
               <IconButton aria-label="notifications" className="header-action-btn" size="small">
