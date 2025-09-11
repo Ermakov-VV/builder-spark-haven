@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 function useRouteMeta(pathname: string) {
   // Map full paths to titles
   const titles: Record<string, string> = {
-    "/": "Главная",
+    "/": "Добро пожаловать в РМЭ",
     "/tools": "Инструменты",
     "/tools/srvp": "Маршрутизация SRVP",
     "/tools/geocode": "Геокодирование",
