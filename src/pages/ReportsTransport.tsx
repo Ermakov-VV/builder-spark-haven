@@ -75,12 +75,11 @@ export default function ReportsTransport() {
               />
             </div>
             <div className="planning-picker-row">
-              <span className="planning-picker-label">Место планирования транспортировки</span>
               <CheckPicker
                 data={planningPlaces}
                 value={selectedPlanning}
                 onChange={(next) => setSelectedPlanning((next as string[]) || [])}
-                placeholder="Выберите МПТ"
+                placeholder="Место планирования транспортировки"
                 className="planning-picker-input"
                 container={getDialogContainer}
                 placement="bottomStart"
@@ -99,6 +98,20 @@ export default function ReportsTransport() {
                     </span>
                   );
                 }}
+                renderExtraFooter={() => (
+                  <div className="planning-picker-footer">
+                    <button
+                      type="button"
+                      className="planning-footer-action"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedPlanning(planningPlaces.map((p) => p.value));
+                      }}
+                    >
+                      Выбрать все
+                    </button>
+                  </div>
+                )}
               />
             </div>
           </CustomProvider>
