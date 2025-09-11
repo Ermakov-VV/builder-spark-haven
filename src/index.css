@@ -82,6 +82,9 @@
 .sidebar-tree .MuiTreeItem-label { color: #ffffff; }
 .sidebar-tree .MuiSvgIcon-root { color: #ffffff; }
 
+/* Push first-level item (depth 0) down by 10px */
+.sidebar-tree .MuiTreeItem-root[style*="--TreeView-itemDepth: 0"] > .MuiTreeItem-content { margin-top: 10px; }
+
 /* Custom label structure */
 .tree-item-label { display: inline-flex; align-items: center; gap: 8px; color: #ffffff; }
 .tree-item-label-icon { display: inline-flex; }
