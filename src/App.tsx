@@ -5,7 +5,9 @@ export default function App() {
   return (
     <>
       <CssBaseline enableColorScheme />
-      <div className="viewport-grid-128x64" />
+      <div className="viewport-grid-128x64 layout-grid">
+        <aside className="sidebar-left-22" />
+      </div>
     </>
   );
 }

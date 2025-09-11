@@ -10,6 +10,9 @@
 .viewport-grid-128x64 {
   width: 100vw;
   height: 100vh;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
+  grid-template-rows: repeat(var(--grid-rows), 1fr);
   background-color: var(--grid-background);
   background-image:
     repeating-linear-gradient(
@@ -24,4 +27,14 @@
     );
   background-repeat: no-repeat, no-repeat;
   background-size: 100% 100%;
+}
+
+/* Layout helpers */
+.layout-grid { isolation: isolate; }
+
+/* Sidebar occupying 22 columns on the left */
+.sidebar-left-22 {
+  grid-column: 1 / span 22;
+  grid-row: 1 / -1;
+  background: #30393f;
 }
