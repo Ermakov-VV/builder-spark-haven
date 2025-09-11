@@ -52,6 +52,7 @@
 .app-header-left { display: inline-flex; align-items: center; gap: 8px; }
 .app-header-logo { height: 20px; display: block; }
 .app-header-right { display: inline-flex; align-items: center; gap: 8px; }
+.header-action-btn .MuiSvgIcon-root { color: #ffffff; }
 
 /* Sidebar content container */
 .sidebar-nav {
