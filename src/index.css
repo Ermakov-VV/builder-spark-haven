@@ -102,10 +102,10 @@
 }
 
 /* Collapsed sidebar layout */
-.layout-grid.sidebar-collapsed .sidebar-left-22 { grid-column: 1 / span 6; }
-.layout-grid.sidebar-collapsed .content-area { grid-column: 7 / -1; }
+.layout-grid.sidebar-collapsed .sidebar-left-22 { position: fixed; left: 0; bottom: 0; top: calc((100vh / var(--grid-rows)) * 3 + 2px); width: 26px; z-index: 9; }
+.layout-grid.sidebar-collapsed .content-area { grid-column: 1 / -1; margin-left: 26px; }
 /* Icon-only sidebar visuals when collapsed */
-.layout-grid.sidebar-collapsed .sidebar-nav { padding-left: 8px; padding-right: 8px; }
+.layout-grid.sidebar-collapsed .sidebar-nav { padding: 3px; }
 .layout-grid.sidebar-collapsed .MuiTreeItem-iconContainer { display: none; }
 .layout-grid.sidebar-collapsed .sidebar-tree .MuiTreeItem-root[style*="--TreeView-itemDepth: 1"] { display: none; }
 .layout-grid.sidebar-collapsed .tree-item-label-text { display: none; }
