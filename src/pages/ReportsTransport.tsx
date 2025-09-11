@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import { DateRangePicker, CustomProvider } from "rsuite";
+import { DateRangePicker, CustomProvider, CheckPicker } from "rsuite";
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
@@ -22,6 +22,14 @@ export default function ReportsTransport() {
     start.setDate(end.getDate() - 7);
     return [start, end];
   });
+  const planningPlaces = React.useMemo(
+    () => [
+      { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
+      { mpt: "RD01", name: "РОМ Ростов-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
+    ],
+    [],
+  );
+  const [selectedPlanning, setSelectedPlanning] = React.useState<string[]>([]);
   const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
   const handleApply = () => {
@@ -64,6 +72,33 @@ export default function ReportsTransport() {
                 container={getDialogContainer}
                 preventOverflow
                 placement="bottomStart"
+              />
+            </div>
+            <div className="planning-picker-row">
+              <span className="planning-picker-label">Место планирования транспортировки</span>
+              <CheckPicker
+                data={planningPlaces}
+                value={selectedPlanning}
+                onChange={(next) => setSelectedPlanning((next as string[]) || [])}
+                placeholder="Выберите МПТ"
+                className="planning-picker-input"
+                container={getDialogContainer}
+                placement="bottomStart"
+                searchable={false}
+                renderMenuItem={(label, item) => (
+                  <div className="planning-item">
+                    <span className="col-mpt">{item.mpt}</span>
+                    <span className="col-name">{item.name}</span>
+                  </div>
+                )}
+                renderValue={(value, items) => {
+                  if (!items || items.length === 0) return null;
+                  return (
+                    <span>
+                      {items.map((it) => `${(it as any).mpt} — ${(it as any).name}`).join(", ")}
+                    </span>
+                  );
+                }}
               />
             </div>
           </CustomProvider>
