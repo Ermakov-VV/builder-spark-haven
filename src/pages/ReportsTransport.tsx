@@ -16,7 +16,12 @@ import PageBreadcrumbs from "../components/PageBreadcrumbs";
 export default function ReportsTransport() {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = React.useState(true);
-  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
+  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 7);
+    return [start, end];
+  });
   const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
   const handleApply = () => {
