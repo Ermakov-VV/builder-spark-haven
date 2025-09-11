@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import ToolsSrvp from "./pages/ToolsSrvp";
 import ToolsGeocode from "./pages/ToolsGeocode";
 import ReportsTransport from "./pages/ReportsTransport";
+import HeaderRouteInfo from "./HeaderRouteInfo";
 import SidebarMenu from "./SidebarMenu";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
                 <span className="app-header-brand-accent">RME</span>
               </span>
             </div>
+            <HeaderRouteInfo />
             <div className="app-header-right">
               <IconButton aria-label="notifications" className="header-action-btn" size="small">
                 <NotificationsIcon />
