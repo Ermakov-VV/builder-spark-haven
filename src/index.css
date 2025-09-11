@@ -38,6 +38,8 @@
   grid-row: 1 / -1;
   background: #30393f;
   position: relative;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.35);
+  z-index: 6;
 }
 
 /* Top header occupying 3 rows, above sidebar */
