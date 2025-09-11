@@ -75,6 +75,12 @@
 .header-breadcrumb-link { color: #ffffff; text-decoration: none; }
 .header-breadcrumb-link:hover { text-decoration: underline; }
 .header-breadcrumb-text { color: #ffffff; opacity: 0.85; }
+
+/* Page breadcrumbs */
+.page-breadcrumbs { color: inherit; margin: 0 0 12px; }
+.page-breadcrumb-link { color: inherit; text-decoration: none; }
+.page-breadcrumb-link:hover { text-decoration: underline; }
+.page-breadcrumb-text { color: inherit; opacity: 0.8; }
 .header-action-btn .MuiSvgIcon-root { color: #ffffff; }
 
 /* Sidebar content container */
