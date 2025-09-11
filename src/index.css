@@ -102,15 +102,15 @@
 }
 
 /* Collapsed sidebar layout */
-.layout-grid.sidebar-collapsed .sidebar-left-22 { position: fixed; left: 0; bottom: 0; top: calc((100vh / var(--grid-rows)) * 3 + 2px); width: 26px; z-index: 9; }
-.layout-grid.sidebar-collapsed .content-area { grid-column: 1 / -1; margin-left: 26px; }
+.layout-grid.sidebar-collapsed .sidebar-left-22 { position: fixed; left: 0; bottom: 0; top: calc((100vh / var(--grid-rows)) * 3 + 2px); width: 32px; z-index: 9; }
+.layout-grid.sidebar-collapsed .content-area { grid-column: 1 / -1; margin-left: 32px; }
 /* Icon-only sidebar visuals when collapsed */
-.layout-grid.sidebar-collapsed .sidebar-nav { padding: 3px; }
+.layout-grid.sidebar-collapsed .sidebar-nav { padding: 6px; }
 .layout-grid.sidebar-collapsed .MuiTreeItem-iconContainer { display: none; }
 .layout-grid.sidebar-collapsed .sidebar-tree .MuiTreeItem-root[style*="--TreeView-itemDepth: 1"] { display: none; }
 .layout-grid.sidebar-collapsed .tree-item-label-text { display: none; }
 .layout-grid.sidebar-collapsed .tree-item-label { justify-content: center; }
-.layout-grid.sidebar-collapsed .sidebar-tree .MuiTreeItem-content { padding: 10px 0; }
+.layout-grid.sidebar-collapsed .sidebar-tree .MuiTreeItem-content { padding: 6px 0; }
 .home-title { margin: 0 0 12px; font-weight: 700; }
 
 /* Home sections based on first-level menu (excluding Главная) */
