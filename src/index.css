@@ -55,5 +55,5 @@
 .tree-item-label { display: inline-flex; align-items: center; gap: 8px; color: #ffffff; }
 .tree-item-label-icon { display: inline-flex; }
 .tree-item-label-text { line-height: 1.25; }
-/* Second-level items (depth 1) font size reduced by 2x */
-.sidebar-tree .MuiTreeItem-root[style*="--TreeView-itemDepth: 1"] .tree-item-label-text { font-size: 1.5em; }
+/* Second-level items (depth 1) font size: 15px */
+.sidebar-tree .MuiTreeItem-root[style*="--TreeView-itemDepth: 1"] .tree-item-label-text { font-size: 15px; }
