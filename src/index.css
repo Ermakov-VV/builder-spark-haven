@@ -86,13 +86,17 @@
 .page-breadcrumb-current-action { cursor: pointer; }
 .page-breadcrumb-current-action:hover { text-decoration: underline; }
 .report-date-range-input { width: 100%; }
+.report-date-range-input.is-invalid .rs-picker-toggle,
+.report-date-range-input.is-invalid .rs-picker-toggle:hover { border-color: #d32f2f; }
+.planning-select-container.is-invalid .planning__control { border-color: #d32f2f; box-shadow: inset 0 0 0 1px #d32f2f; }
+.field-error-text { color: #d32f2f; font-size: 12px; margin-top: 4px; margin-left: calc(120px + 12px); }
 .MuiDialog-root .rs-picker-popup { z-index: 1500; }
 .report-date-range-row { display: flex; align-items: center; gap: 12px; }
 .report-date-range-label { min-width: 120px; opacity: 0.8; }
 .report-date-range-input { flex: 0 0 auto; width: 280px; max-width: 100%; }
 .planning-picker-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; width: 100%; }
 .planning-picker-label { min-width: 120px; opacity: 0.8; }
-.planning-picker-input { flex: 1 1 auto; width: 100%; max-width: 100%; }
+.planning-picker-input { flex: 1 1 auto; width: 100%; max-width: 100%; min-width: 0; }
 /* React-Select planning option layout */
 .planning-option { display: grid; grid-template-columns: 20px 90px 1fr; gap: 12px; align-items: center; }
 .planning-option .option-code { font-weight: 600; padding-right: 8px; border-right: 1px solid rgba(0,0,0,0.12); }
@@ -156,7 +160,7 @@
 .layout-grid.sidebar-collapsed .tree-item-label-icon { margin: 6px 0; }
 .home-title { margin: 0 0 12px; font-weight: 700; }
 
-/* Home sections based on first-level menu (excluding ��лавная) */
+/* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
 /* Background silhouettes on Home (disabled for solid color) */
 .home-page::before,
