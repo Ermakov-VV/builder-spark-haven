@@ -8,7 +8,8 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import { DateRangePicker, CustomProvider, CheckPicker, Checkbox } from "rsuite";
+import { DateRangePicker, CustomProvider } from "rsuite";
+import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
@@ -75,48 +76,60 @@ export default function ReportsTransport() {
               />
             </div>
             <div className="planning-picker-row">
-              <CheckPicker
-                data={planningPlaces}
-                value={selectedPlanning}
-                onChange={(next) => setSelectedPlanning((next as string[]) || [])}
+              <Select
+                className="planning-picker-input planning-select-container"
+                classNamePrefix="planning"
+                isMulti
                 placeholder="Место планирования транспортировки"
-                className="planning-picker-input"
-                container={getDialogContainer}
-                placement="bottomStart"
-                searchable={false}
-                block
-                renderMenuItem={(label, item) => (
-                  <div className="planning-item">
-                    <span className="col-mpt">{item.mpt}</span>
-                    <span className="col-name">{item.name}</span>
+                options={planningPlaces}
+                value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
+                onChange={(vals) => setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value))}
+                getOptionValue={(o) => o.value}
+                getOptionLabel={(o) => `${o.mpt} — ${o.name}`}
+                formatOptionLabel={(option) => (
+                  <div className="planning-option">
+                    <span className="option-checkbox" aria-hidden>
+                      <input type="checkbox" checked={selectedPlanning.includes(option.value)} readOnly />
+                    </span>
+                    <span className="option-code">{option.mpt}</span>
+                    <span className="option-name">{option.name}</span>
                   </div>
                 )}
-                renderValue={(value, items) => {
-                  if (!items || items.length === 0) return null;
-                  return (
-                    <span>
-                      {items.map((it) => `${(it as any).mpt} — ${(it as any).name}`).join(", ")}
-                    </span>
-                  );
+                components={{
+                  MenuList: (props: MenuListProps) => {
+                    const allValues = planningPlaces.map((p) => p.value);
+                    const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
+                    const someSelected = selectedPlanning.length > 0 && !allSelected;
+                    return (
+                      <components.MenuList {...props}>
+                        <label className="planning-select-all-row">
+                          <input
+                            type="checkbox"
+                            checked={allSelected}
+                            ref={(el) => el && (el.indeterminate = someSelected)}
+                            onChange={(e) => setSelectedPlanning(e.target.checked ? allValues : [])}
+                          />
+                          <span>Выбрать все</span>
+                        </label>
+                        {props.children}
+                      </components.MenuList>
+                    );
+                  },
+                  Option: (optionProps: OptionProps<any>) => (
+                    <components.Option {...optionProps}>
+                      <div className="planning-option">
+                        <span className="option-checkbox" aria-hidden>
+                          <input type="checkbox" checked={optionProps.isSelected} readOnly />
+                        </span>
+                        <span className="option-code">{optionProps.data.mpt}</span>
+                        <span className="option-name">{optionProps.data.name}</span>
+                      </div>
+                    </components.Option>
+                  ),
                 }}
-                renderExtraFooter={() => {
-                  const allValues = planningPlaces.map((p) => p.value);
-                  const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
-                  const someSelected = selectedPlanning.length > 0 && !allSelected;
-                  return (
-                    <div className="planning-picker-footer">
-                      <Checkbox
-                        checked={allSelected}
-                        indeterminate={someSelected}
-                        onChange={(_val, checked) => {
-                          setSelectedPlanning(checked ? allValues : []);
-                        }}
-                      >
-                        Выбрать все
-                      </Checkbox>
-                    </div>
-                  );
-                }}
+                menuPortalTarget={getDialogContainer()}
+                menuPosition="fixed"
+                styles={{ menuPortal: (base) => ({ ...base, zIndex: 1500 }) }}
               />
             </div>
           </CustomProvider>
