@@ -44,6 +44,7 @@ export default function ReportsTransport() {
     { id: "card2", title: "Карточка 2" },
     { id: "card3", title: "Карточка 3" },
     { id: "card4", title: "Карточка 4" },
+    { id: "card5", title: "Карточка 5" },
   ]);
   const draggingIdRef = React.useRef<string | null>(null);
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
@@ -156,7 +157,7 @@ export default function ReportsTransport() {
         {cards.map((card, idx) => (
           <div
             key={card.id}
-            className={`transport-card-wrapper${card.id === "card4" ? " full-width" : ""}${overIndex === idx ? " drag-over" : ""}`}
+            className={`transport-card-wrapper${card.id === "card4" ? " full-width" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${overIndex === idx ? " drag-over" : ""}`}
             onDragOver={onCardDragOver(idx)}
             onDrop={onCardDrop(idx)}
           >
@@ -209,7 +210,7 @@ export default function ReportsTransport() {
                   className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
                   classNamePrefix="planning"
                   isMulti
-                  placeholder="Место планирования тра��спортировки"
+                  placeholder="Место планирования транспортировки"
                   options={planningPlaces}
                   value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
                   onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value)); setTouchedPlanning(true); }}
