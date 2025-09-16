@@ -39,6 +39,44 @@ export default function ReportsTransport() {
   const isFormValid = isDateValid && isPlanningValid;
   const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
+  const [cards, setCards] = React.useState([
+    { id: "card1", title: "Карточка 1" },
+    { id: "card2", title: "Карточка 2" },
+    { id: "card3", title: "Карточка 3" },
+  ]);
+  const draggingIdRef = React.useRef<string | null>(null);
+  const [overId, setOverId] = React.useState<string | null>(null);
+
+  const onDragStart = (id: string) => (e: React.DragEvent) => {
+    draggingIdRef.current = id;
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const onDragOver = (id: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    setOverId(id);
+    e.dataTransfer.dropEffect = "move";
+  };
+  const onDrop = (id: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const fromId = draggingIdRef.current;
+    draggingIdRef.current = null;
+    setOverId(null);
+    if (!fromId || fromId === id) return;
+    setCards((prev) => {
+      const from = prev.findIndex((c) => c.id === fromId);
+      const to = prev.findIndex((c) => c.id === id);
+      if (from === -1 || to === -1) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+  const onDragEnd = () => {
+    draggingIdRef.current = null;
+    setOverId(null);
+  };
+
   const handleApply = () => {
     setDialogOpen(false);
   };
@@ -57,15 +95,19 @@ export default function ReportsTransport() {
       <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
 
       <div className="transport-cards">
-        <div className="transport-card">
-          <div className="transport-card-title">Карточка 1</div>
-        </div>
-        <div className="transport-card">
-          <div className="transport-card-title">Карточка 2</div>
-        </div>
-        <div className="transport-card">
-          <div className="transport-card-title">Карточка 3</div>
-        </div>
+        {cards.map((card) => (
+          <div
+            key={card.id}
+            className={`transport-card${overId === card.id ? " drag-over" : ""}`}
+            draggable
+            onDragStart={onDragStart(card.id)}
+            onDragOver={onDragOver(card.id)}
+            onDrop={onDrop(card.id)}
+            onDragEnd={onDragEnd}
+          >
+            <div className="transport-card-title">{card.title}</div>
+          </div>
+        ))}
       </div>
 
       <Dialog
