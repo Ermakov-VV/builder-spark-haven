@@ -181,6 +181,7 @@
 
 .transport-grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 12px; margin: 12px 0 16px; }
 .transport-card-wrapper { height: calc((100vh / var(--grid-rows)) * 15); border-radius: 16px; }
+.transport-card-wrapper.full-width { grid-column: 1 / -1; }
 .transport-card-wrapper.drag-over { outline: 2px dashed #1976d2; outline-offset: -4px; }
 .transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; cursor: move; user-select: none; will-change: transform; transition: transform 250ms ease, box-shadow 150ms ease; }
 .transport-card.is-dragging { transform: scale(1.02); box-shadow: 0 14px 30px rgba(0,0,0,0.2); }
