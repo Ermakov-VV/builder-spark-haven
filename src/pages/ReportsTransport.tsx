@@ -60,77 +60,79 @@ export default function ReportsTransport() {
         <DialogTitle id="transport-report-dialog-title">Выберите параметры</DialogTitle>
         <DialogContent>
           <CustomProvider locale={ruRU}>
-            <div className="report-date-range-row">
-              <span className="report-date-range-label">Период</span>
-              <DateRangePicker
-                value={dateRange}
-                onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
-                locale={ruRU}
-                format="dd.MM.yyyy"
-                character=" - "
-                placeholder="Дата начала - Дата окончания"
-                className="report-date-range-input"
-                container={getDialogContainer}
-                preventOverflow
-                placement="bottomStart"
-              />
-            </div>
-            <div className="planning-picker-row">
-              <Select
-                className="planning-picker-input planning-select-container"
-                classNamePrefix="planning"
-                isMulti
-                placeholder="Место планирования транспортировки"
-                options={planningPlaces}
-                value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
-                onChange={(vals) => setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value))}
-                getOptionValue={(o) => o.value}
-                getOptionLabel={(o) => `${o.mpt} — ${o.name}`}
-                formatOptionLabel={(option) => (
-                  <div className="planning-option">
-                    <span className="option-checkbox" aria-hidden>
-                      <input type="checkbox" checked={selectedPlanning.includes(option.value)} readOnly />
-                    </span>
-                    <span className="option-code">{option.mpt}</span>
-                    <span className="option-name">{option.name}</span>
-                  </div>
-                )}
-                components={{
-                  MenuList: (props: MenuListProps) => {
-                    const allValues = planningPlaces.map((p) => p.value);
-                    const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
-                    const someSelected = selectedPlanning.length > 0 && !allSelected;
-                    return (
-                      <components.MenuList {...props}>
-                        <label className="planning-select-all-row">
-                          <input
-                            type="checkbox"
-                            checked={allSelected}
-                            ref={(el) => el && (el.indeterminate = someSelected)}
-                            onChange={(e) => setSelectedPlanning(e.target.checked ? allValues : [])}
-                          />
-                          <span>Выбрать все</span>
-                        </label>
-                        {props.children}
-                      </components.MenuList>
-                    );
-                  },
-                  Option: (optionProps: OptionProps<any>) => (
-                    <components.Option {...optionProps}>
-                      <div className="planning-option">
-                        <span className="option-checkbox" aria-hidden>
-                          <input type="checkbox" checked={optionProps.isSelected} readOnly />
-                        </span>
-                        <span className="option-code">{optionProps.data.mpt}</span>
-                        <span className="option-name">{optionProps.data.name}</span>
-                      </div>
-                    </components.Option>
-                  ),
-                }}
-                menuPortalTarget={getDialogContainer()}
-                menuPosition="fixed"
-                styles={{ menuPortal: (base) => ({ ...base, zIndex: 1500 }) }}
-              />
+            <div className="report-params-group">
+              <div className="report-date-range-row">
+                <span className="report-date-range-label">Период</span>
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
+                  locale={ruRU}
+                  format="dd.MM.yyyy"
+                  character=" - "
+                  placeholder="Дата начала - Дата окончания"
+                  className="report-date-range-input"
+                  container={getDialogContainer}
+                  preventOverflow
+                  placement="bottomStart"
+                />
+              </div>
+              <div className="planning-picker-row">
+                <Select
+                  className="planning-picker-input planning-select-container"
+                  classNamePrefix="planning"
+                  isMulti
+                  placeholder="Место планирования транспортировки"
+                  options={planningPlaces}
+                  value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
+                  onChange={(vals) => setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value))}
+                  getOptionValue={(o) => o.value}
+                  getOptionLabel={(o) => `${o.mpt} — ${o.name}`}
+                  formatOptionLabel={(option) => (
+                    <div className="planning-option">
+                      <span className="option-checkbox" aria-hidden>
+                        <input type="checkbox" checked={selectedPlanning.includes(option.value)} readOnly />
+                      </span>
+                      <span className="option-code">{option.mpt}</span>
+                      <span className="option-name">{option.name}</span>
+                    </div>
+                  )}
+                  components={{
+                    MenuList: (props: MenuListProps) => {
+                      const allValues = planningPlaces.map((p) => p.value);
+                      const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
+                      const someSelected = selectedPlanning.length > 0 && !allSelected;
+                      return (
+                        <components.MenuList {...props}>
+                          <label className="planning-select-all-row">
+                            <input
+                              type="checkbox"
+                              checked={allSelected}
+                              ref={(el) => el && (el.indeterminate = someSelected)}
+                              onChange={(e) => setSelectedPlanning(e.target.checked ? allValues : [])}
+                            />
+                            <span>Выбрать все</span>
+                          </label>
+                          {props.children}
+                        </components.MenuList>
+                      );
+                    },
+                    Option: (optionProps: OptionProps<any>) => (
+                      <components.Option {...optionProps}>
+                        <div className="planning-option">
+                          <span className="option-checkbox" aria-hidden>
+                            <input type="checkbox" checked={optionProps.isSelected} readOnly />
+                          </span>
+                          <span className="option-code">{optionProps.data.mpt}</span>
+                          <span className="option-name">{optionProps.data.name}</span>
+                        </div>
+                      </components.Option>
+                    ),
+                  }}
+                  menuPortalTarget={getDialogContainer()}
+                  menuPosition="fixed"
+                  styles={{ menuPortal: (base) => ({ ...base, zIndex: 1500 }) }}
+                />
+              </div>
             </div>
           </CustomProvider>
         </DialogContent>
