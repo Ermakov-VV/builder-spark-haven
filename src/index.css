@@ -179,6 +179,11 @@
   background-size: 100% 100%;
 }
 
+.transport-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: calc((100vh / var(--grid-rows)) * 15); padding: 12px; box-sizing: border-box; }
+.transport-card-title { font-weight: 600; opacity: 0.9; }
+.transport-card:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16); }
+
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
 /* Background silhouettes on Home (disabled for solid color) */
