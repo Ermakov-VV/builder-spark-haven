@@ -183,7 +183,8 @@
 .transport-slot { height: calc((100vh / var(--grid-rows)) * 15); border-radius: 16px; }
 .transport-slot.empty { border: 2px dashed rgba(0,0,0,0.2); background: rgba(255,255,255,0.5); }
 .transport-slot.drag-over { outline: 2px dashed #1976d2; outline-offset: -4px; }
-.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; cursor: move; user-select: none; }
+.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; cursor: move; user-select: none; will-change: transform; transition: transform 250ms ease, box-shadow 150ms ease; }
+.transport-card.is-dragging { transform: scale(1.02); box-shadow: 0 14px 30px rgba(0,0,0,0.2); }
 .transport-card-title { font-weight: 600; opacity: 0.9; }
 .transport-card:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16); }
 
