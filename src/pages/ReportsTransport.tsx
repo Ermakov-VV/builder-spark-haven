@@ -55,7 +55,6 @@ export default function ReportsTransport() {
   return (
     <div className="reports-transport-page">
       <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
-      <h1>Отчет по транспортировкам</h1>
 
       <Dialog
         open={dialogOpen}
