@@ -179,11 +179,13 @@
   background-size: 100% 100%;
 }
 
-.transport-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0 16px; }
-.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: calc((100vh / var(--grid-rows)) * 15); padding: 12px; box-sizing: border-box; cursor: move; user-select: none; }
+.transport-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.transport-slot { height: calc((100vh / var(--grid-rows)) * 15); border-radius: 16px; }
+.transport-slot.empty { border: 2px dashed rgba(0,0,0,0.2); background: rgba(255,255,255,0.5); }
+.transport-slot.drag-over { outline: 2px dashed #1976d2; outline-offset: -4px; }
+.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; cursor: move; user-select: none; }
 .transport-card-title { font-weight: 600; opacity: 0.9; }
 .transport-card:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16); }
-.transport-card.drag-over { outline: 2px dashed #1976d2; outline-offset: -6px; }
 
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
