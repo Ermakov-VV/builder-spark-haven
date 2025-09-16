@@ -56,6 +56,18 @@ export default function ReportsTransport() {
     <div className="reports-transport-page">
       <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
 
+      <div className="transport-cards">
+        <div className="transport-card">
+          <div className="transport-card-title">Карточка 1</div>
+        </div>
+        <div className="transport-card">
+          <div className="transport-card-title">Карточка 2</div>
+        </div>
+        <div className="transport-card">
+          <div className="transport-card-title">Карточка 3</div>
+        </div>
+      </div>
+
       <Dialog
         open={dialogOpen}
         onClose={handleClose}
