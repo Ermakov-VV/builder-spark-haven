@@ -92,7 +92,7 @@
 .report-date-range-input { flex: 0 0 auto; width: 280px; max-width: 100%; }
 .planning-picker-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; width: 100%; }
 .planning-picker-label { min-width: 120px; opacity: 0.8; }
-.planning-picker-input { flex: 0 0 auto; width: 280px; max-width: 100%; }
+.planning-picker-input { flex: 1 1 auto; width: 100%; max-width: 100%; }
 /* React-Select planning option layout */
 .planning-option { display: grid; grid-template-columns: 20px 90px 1fr; gap: 12px; align-items: center; }
 .planning-option .option-code { font-weight: 600; padding-right: 8px; border-right: 1px solid rgba(0,0,0,0.12); }
@@ -101,11 +101,14 @@
 /* Select all row aligned with options */
 .planning-select-all-row { display: grid; grid-template-columns: 20px 1fr; gap: 12px; align-items: center; padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,0.08); }
 /* Prevent react-select from growing with chips */
-.planning-select-container { width: 280px; }
+.planning-select-container { width: 100%; }
 .planning-select-container .planning__control { width: 100%; min-width: 0; }
 .planning-select-container .planning__value-container { overflow: hidden; flex-wrap: nowrap; }
 .planning-select-container .planning__multi-value { max-width: 100%; }
 .planning-select-container .planning__placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.report-params-group { display: inline-block; max-width: 100%; }
+.report-params-group .report-date-range-row { width: 100%; }
+.report-params-group .planning-picker-row { width: 100%; }
 /* Keep old RSuite menu styles harmless (no longer used for planning) */
 .rs-picker-menu .rs-checkbox { display: flex; align-items: center; padding: 6px 8px; }
 .rs-picker-menu .rs-checkbox .rs-checkbox-checker { width: 100%; }
