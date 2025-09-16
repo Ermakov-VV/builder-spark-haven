@@ -159,6 +159,25 @@
 .layout-grid.sidebar-collapsed .sidebar-tree .MuiTreeItem-content { padding: 6px 0; }
 .layout-grid.sidebar-collapsed .tree-item-label-icon { margin: 6px 0; }
 .home-title { margin: 0 0 12px; font-weight: 700; }
+/* Grid background on transport report page */
+.reports-transport-page {
+  position: relative;
+  min-height: 100%;
+  background-color: var(--grid-background);
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--grid-line-color) 0 1px,
+      transparent 1px calc(100%/var(--grid-cols))
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--grid-line-color) 0 1px,
+      transparent 1px calc(100%/var(--grid-rows))
+    );
+  background-repeat: no-repeat, no-repeat;
+  background-size: 100% 100%;
+}
 
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
