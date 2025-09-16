@@ -44,7 +44,6 @@ export default function ReportsTransport() {
     { id: "card2", title: "Карточка 2" },
     { id: "card3", title: "Карточка 3" },
   ]);
-  const [slotCount] = React.useState(9);
   const draggingIdRef = React.useRef<string | null>(null);
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
@@ -106,9 +105,9 @@ export default function ReportsTransport() {
     setOverIndex(targetIndex);
     e.dataTransfer.dropEffect = "move";
   };
-  const onSlotDragOver = (slotIndex: number) => (e: React.DragEvent) => {
+  const onGridDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setOverIndex(slotIndex);
+    setOverIndex(cards.length);
     e.dataTransfer.dropEffect = "move";
   };
   const onCardDrop = (targetIndex: number) => (e: React.DragEvent) => {
@@ -120,12 +119,12 @@ export default function ReportsTransport() {
     setOverIndex(null);
     setDraggingId(null);
   };
-  const onSlotDrop = (slotIndex: number) => (e: React.DragEvent) => {
+  const onGridDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const fromId = draggingIdRef.current;
     draggingIdRef.current = null;
     if (fromId == null) return;
-    animateReorder(fromId, slotIndex);
+    animateReorder(fromId, cards.length);
     setOverIndex(null);
     setDraggingId(null);
   };
@@ -152,41 +151,28 @@ export default function ReportsTransport() {
     <div className="reports-transport-page">
       <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
 
-      <div className="transport-grid">
-        {Array.from({ length: Math.max(slotCount, cards.length) }).map((_, idx) => {
-          const card = cards[idx];
-          if (card) {
-            return (
-              <div
-                key={card.id}
-                className={`transport-slot${overIndex === idx ? " drag-over" : ""}`}
-                onDragOver={onCardDragOver(idx)}
-                onDrop={onCardDrop(idx)}
-              >
-                <div
-                  className={`transport-card${draggingId === card.id ? " is-dragging" : ""}`}
-                  draggable
-                  onDragStart={onDragStart(card.id)}
-                  onDragEnd={onDragEnd}
-                  ref={(el) => {
-                    if (el) cardRefs.current.set(card.id, el);
-                    else cardRefs.current.delete(card.id);
-                  }}
-                >
-                  <div className="transport-card-title">{card.title}</div>
-                </div>
-              </div>
-            );
-          }
-          return (
+      <div className="transport-grid" onDragOver={onGridDragOver} onDrop={onGridDrop}>
+        {cards.map((card, idx) => (
+          <div
+            key={card.id}
+            className={`transport-card-wrapper${overIndex === idx ? " drag-over" : ""}`}
+            onDragOver={onCardDragOver(idx)}
+            onDrop={onCardDrop(idx)}
+          >
             <div
-              key={`slot-${idx}`}
-              className={`transport-slot empty${overIndex === idx ? " drag-over" : ""}`}
-              onDragOver={onSlotDragOver(idx)}
-              onDrop={onSlotDrop(idx)}
-            />
-          );
-        })}
+              className={`transport-card${draggingId === card.id ? " is-dragging" : ""}`}
+              draggable
+              onDragStart={onDragStart(card.id)}
+              onDragEnd={onDragEnd}
+              ref={(el) => {
+                if (el) cardRefs.current.set(card.id, el);
+                else cardRefs.current.delete(card.id);
+              }}
+            >
+              <div className="transport-card-title">{card.title}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <Dialog
