@@ -32,6 +32,11 @@ export default function ReportsTransport() {
     [],
   );
   const [selectedPlanning, setSelectedPlanning] = React.useState<string[]>([]);
+  const [touchedDate, setTouchedDate] = React.useState(false);
+  const [touchedPlanning, setTouchedPlanning] = React.useState(false);
+  const isDateValid = Boolean(dateRange[0]) && Boolean(dateRange[1]);
+  const isPlanningValid = selectedPlanning.length > 0;
+  const isFormValid = isDateValid && isPlanningValid;
   const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
   const handleApply = () => {
@@ -66,26 +71,29 @@ export default function ReportsTransport() {
                 <span className="report-date-range-label">Период</span>
                 <DateRangePicker
                   value={dateRange}
-                  onChange={(value) => setDateRange((value || [null, null]) as [Date | null, Date | null])}
+                  onChange={(value) => { setDateRange((value || [null, null]) as [Date | null, Date | null]); setTouchedDate(true); }}
                   locale={ruRU}
                   format="dd.MM.yyyy"
                   character=" - "
                   placeholder="Дата начала - Дата окончания"
-                  className="report-date-range-input"
+                  className={`report-date-range-input${!isDateValid && touchedDate ? " is-invalid" : ""}`}
                   container={getDialogContainer}
                   preventOverflow
                   placement="bottomStart"
                 />
               </div>
+              {!isDateValid && touchedDate && (
+                <div className="field-error-text">Укажите период</div>
+              )}
               <div className="planning-picker-row">
                 <Select
-                  className="planning-picker-input planning-select-container"
+                  className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
                   classNamePrefix="planning"
                   isMulti
                   placeholder="Место планирования транспортировки"
                   options={planningPlaces}
                   value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
-                  onChange={(vals) => setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value))}
+                  onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value)); setTouchedPlanning(true); }}
                   getOptionValue={(o) => o.value}
                   getOptionLabel={(o) => `${o.mpt} — ${o.name}`}
                   formatOptionLabel={(option) => (
@@ -131,15 +139,19 @@ export default function ReportsTransport() {
                   }}
                   menuPortalTarget={getDialogContainer()}
                   menuPosition="fixed"
+                  onBlur={() => setTouchedPlanning(true)}
                   styles={{ menuPortal: (base) => ({ ...base, zIndex: 1500 }) }}
                 />
               </div>
             </div>
+            {!isPlanningValid && touchedPlanning && (
+              <div className="field-error-text">Выберите место планирования транспортировки</div>
+            )}
           </CustomProvider>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleExit} color="inherit">Выйти</Button>
-          <Button onClick={handleApply} variant="contained">Применить</Button>
+          <Button onClick={handleApply} variant="contained" disabled={!isFormValid}>Применить</Button>
         </DialogActions>
       </Dialog>
     </div>
