@@ -46,23 +46,59 @@ export default function ReportsTransport() {
   ]);
   const [slotCount] = React.useState(9);
   const draggingIdRef = React.useRef<string | null>(null);
+  const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
+  const cardRefs = React.useRef(new Map<string, HTMLElement>());
 
-  const getIndexById = (id: string) => cards.findIndex((c) => c.id === id);
-  const moveToIndex = (fromId: string, toIndex: number) => {
+  const measurePositions = () => {
+    const positions: Record<string, DOMRect> = {};
+    cards.forEach((c) => {
+      const el = cardRefs.current.get(c.id);
+      if (el) positions[c.id] = el.getBoundingClientRect();
+    });
+    return positions;
+  };
+
+  const animateReorder = (fromId: string, toIndex: number) => {
+    const start = measurePositions();
     setCards((prev) => {
       const from = prev.findIndex((c) => c.id === fromId);
       if (from === -1) return prev;
-      const clampedTo = Math.max(0, Math.min(toIndex, prev.length));
+      const clampedTo = Math.max(0, Math.min(toIndex, Math.max(prev.length - 1, 0)));
       const next = [...prev];
       const [moved] = next.splice(from, 1);
       next.splice(clampedTo, 0, moved);
       return next;
     });
+    requestAnimationFrame(() => {
+      const end = measurePositions();
+      cards.forEach((c) => {
+        const el = cardRefs.current.get(c.id);
+        const first = start[c.id];
+        const last = end[c.id];
+        if (!el || !first || !last) return;
+        const dx = first.left - last.left;
+        const dy = first.top - last.top;
+        if (dx !== 0 || dy !== 0) {
+          el.style.transition = "transform 0s";
+          el.style.transform = `translate(${dx}px, ${dy}px)`;
+          requestAnimationFrame(() => {
+            el.style.transition = "transform 250ms ease";
+            el.style.transform = "translate(0px, 0px)";
+            const clear = () => {
+              el.style.transition = "";
+              el.removeEventListener("transitionend", clear);
+            };
+            el.addEventListener("transitionend", clear);
+          });
+        }
+      });
+    });
   };
 
   const onDragStart = (id: string) => (e: React.DragEvent) => {
     draggingIdRef.current = id;
+    setDraggingId(id);
     e.dataTransfer.effectAllowed = "move";
   };
   const onCardDragOver = (targetIndex: number) => (e: React.DragEvent) => {
@@ -80,20 +116,23 @@ export default function ReportsTransport() {
     const fromId = draggingIdRef.current;
     draggingIdRef.current = null;
     if (fromId == null) return;
-    moveToIndex(fromId, targetIndex);
+    animateReorder(fromId, targetIndex);
     setOverIndex(null);
+    setDraggingId(null);
   };
   const onSlotDrop = (slotIndex: number) => (e: React.DragEvent) => {
     e.preventDefault();
     const fromId = draggingIdRef.current;
     draggingIdRef.current = null;
     if (fromId == null) return;
-    moveToIndex(fromId, slotIndex);
+    animateReorder(fromId, slotIndex);
     setOverIndex(null);
+    setDraggingId(null);
   };
   const onDragEnd = () => {
     draggingIdRef.current = null;
     setOverIndex(null);
+    setDraggingId(null);
   };
 
   const handleApply = () => {
@@ -125,10 +164,14 @@ export default function ReportsTransport() {
                 onDrop={onCardDrop(idx)}
               >
                 <div
-                  className="transport-card"
+                  className={`transport-card${draggingId === card.id ? " is-dragging" : ""}`}
                   draggable
                   onDragStart={onDragStart(card.id)}
                   onDragEnd={onDragEnd}
+                  ref={(el) => {
+                    if (el) cardRefs.current.set(card.id, el);
+                    else cardRefs.current.delete(card.id);
+                  }}
                 >
                   <div className="transport-card-title">{card.title}</div>
                 </div>
