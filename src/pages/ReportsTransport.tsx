@@ -14,9 +14,11 @@ import Select, { components, MenuListProps, OptionProps, MultiValue } from "reac
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
-import { Table } from "antd";
+import { Table, ConfigProvider } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
+import "dayjs/locale/ru";
+import ruLocale from "antd/locale/ru_RU";
 
 type TransportRow = {
   key: string;
@@ -32,6 +34,7 @@ type TransportRow = {
 };
 
 export default function ReportsTransport() {
+  dayjs.locale("ru");
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = React.useState(true);
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(() => {
@@ -358,13 +361,15 @@ export default function ReportsTransport() {
                       inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
                     />
                   </div>
-                  <Table
-                    dataSource={filteredData}
-                    columns={columns}
-                    size="middle"
-                    pagination={{ pageSize: 10, showSizeChanger: true }}
-                    rowKey="key"
-                  />
+                  <ConfigProvider locale={ruLocale}>
+                    <Table
+                      dataSource={filteredData}
+                      columns={columns}
+                      size="middle"
+                      pagination={{ pageSize: 10, showSizeChanger: true }}
+                      rowKey="key"
+                    />
+                  </ConfigProvider>
                 </div>
               )}
             </div>
