@@ -8,6 +8,10 @@ import {
   DialogTitle,
   Button,
   TextField,
+  Menu,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
@@ -286,6 +290,18 @@ export default function ReportsTransport() {
     ],
     [tableData],
   );
+
+  const [columnsMenuEl, setColumnsMenuEl] = React.useState<null | HTMLElement>(null);
+  const [visibleCols, setVisibleCols] = React.useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    (columns as any[]).forEach((c) => { init[String(c.key)] = true; });
+    return init;
+  });
+  const displayedColumns = React.useMemo(
+    () => columns.filter((c) => visibleCols[String(c.key)] !== false),
+    [columns, visibleCols],
+  );
+
   const draggingIdRef = React.useRef<string | null>(null);
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
@@ -430,10 +446,28 @@ export default function ReportsTransport() {
                       inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
                     />
                   </div>
+                  <div className="table-controls-row">
+                    <Button size="small" variant="outlined" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>Колонки</Button>
+                    <Menu anchorEl={columnsMenuEl} open={Boolean(columnsMenuEl)} onClose={() => setColumnsMenuEl(null)}>
+                      {columns.map((col) => {
+                        const key = String(col.key);
+                        const label = typeof col.title === 'string' ? col.title : key;
+                        const checked = visibleCols[key] !== false;
+                        return (
+                          <MenuItem key={key} dense onClick={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))}>
+                            <FormControlLabel
+                              control={<Checkbox size="small" checked={checked} onChange={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))} />}
+                              label={label}
+                            />
+                          </MenuItem>
+                        );
+                      })}
+                    </Menu>
+                  </div>
                   <ConfigProvider locale={ruLocale}>
                     <Table
                       dataSource={filteredData}
-                      columns={columns}
+                      columns={displayedColumns}
                       size="middle"
                       pagination={{ pageSize: 10, showSizeChanger: true }}
                       rowKey="key"
