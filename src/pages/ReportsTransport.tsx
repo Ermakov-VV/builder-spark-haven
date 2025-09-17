@@ -15,6 +15,7 @@ import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
 import { Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 
 type TransportRow = {
@@ -58,7 +59,7 @@ export default function ReportsTransport() {
   const [cards, setCards] = React.useState([
     { id: "card1", title: "Карточка 1" },
     { id: "card2", title: "Карточка 2" },
-    { id: "card3", title: "Карточка 3" },
+    { id: "card3", title: "Карточк�� 3" },
     { id: "card4", title: "Карточка 4" },
     { id: "card5", title: "Карточка 5" },
   ]);
@@ -108,7 +109,7 @@ export default function ReportsTransport() {
   const unique = <T extends keyof TransportRow>(key: T) =>
     Array.from(new Set(tableData.map((r) => String(r[key])))).map((v) => ({ text: v, value: v }));
 
-  const columns = React.useMemo(
+  const columns: ColumnsType<TransportRow> = React.useMemo(
     () => [
       {
         title: "МПТ",
@@ -323,7 +324,7 @@ export default function ReportsTransport() {
                 >
                   <Table
                     dataSource={tableData}
-                    columns={columns as any}
+                    columns={columns}
                     size="middle"
                     pagination={{ pageSize: 10, showSizeChanger: true }}
                     rowKey="key"
