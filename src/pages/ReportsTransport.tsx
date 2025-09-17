@@ -76,7 +76,7 @@ export default function ReportsTransport() {
   const tableData: TransportRow[] = React.useMemo(() => {
     const mpts = ["VE86", "RD01", "NN01", "MSK1", "SPB1"];
     const drivers = [
-      "Иванов И.И.",
+      "Иван��в И.И.",
       "Петров П.П.",
       "Сидоров С.С.",
       "Кузнецов К.К.",
@@ -447,7 +447,7 @@ export default function ReportsTransport() {
                         inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
                       />
                     </div>
-                    <Button aria-label="Настройка колонок" size="small" variant="outlined" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>
+                    <Button className="columns-menu-button" aria-label="Настройка колонок" size="small" variant="text" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                         <rect x="3" y="6" width="18" height="2" fill="currentColor" />
                         <rect x="3" y="11" width="18" height="2" fill="currentColor" />
