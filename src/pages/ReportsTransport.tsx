@@ -7,14 +7,40 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  TextField,
+  Menu,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { Table, ConfigProvider } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import dayjs from "dayjs";
+import "dayjs/locale/ru";
+import ruLocale from "antd/locale/ru_RU";
+
+type TransportRow = {
+  key: string;
+  mpt: string;
+  transportNo: string;
+  driver: string;
+  carBrand: string;
+  carPlate: string;
+  route: string | string[];
+  addressCount: number;
+  outOfOrderCount: number;
+  violationsPct: number;
+  planDeparture: string; // ISO
+  planFinish: string; // ISO
+};
 
 export default function ReportsTransport() {
+  dayjs.locale("ru");
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = React.useState(true);
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(() => {
@@ -26,7 +52,7 @@ export default function ReportsTransport() {
   const planningPlaces = React.useMemo(
     () => [
       { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
-      { mpt: "RD01", name: "РОМ Ростов-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
+      { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
       { mpt: "NN01", name: "РОМ Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
     ],
     [],
@@ -42,10 +68,214 @@ export default function ReportsTransport() {
   const [cards, setCards] = React.useState([
     { id: "card1", title: "Карточка 1" },
     { id: "card2", title: "Карточка 2" },
-    { id: "card3", title: "Карточка 3" },
+    { id: "card3", title: "Карточк�� 3" },
     { id: "card4", title: "Карточка 4" },
     { id: "card5", title: "Карточка 5" },
   ]);
+
+  const tableData: TransportRow[] = React.useMemo(() => {
+    const mpts = ["VE86", "RD01", "NN01", "MSK1", "SPB1"];
+    const drivers = [
+      "Иван��в И.И.",
+      "Петров П.П.",
+      "Сидоров С.С.",
+      "Кузнецов К.К.",
+      "Смирнов С.С.",
+      "Попов П.П.",
+      "Васильев В.В.",
+    ];
+    const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
+    const plates = [
+      "А123ВС 161",
+      "В456ЕЕ 52",
+      "К789МН 34",
+      "О321ОР 77",
+      "Р654АК 78",
+      "Н987ТТ 16",
+      "Т246ХХ 66",
+    ];
+    const routesPool = [
+      "Ростов-на-Дону — Батайск",
+      "Н.Новгород — Дзержинск",
+      "Ростов-на-Дону — Азов",
+      "Москва — Химки",
+      "Санкт-Петербург — Пушкин",
+      "Казань — Зеленодольск",
+      "Екатеринбург — Березовский",
+    ];
+    const base = dayjs("2025-09-17T08:00:00Z");
+    return Array.from({ length: 30 }, (_, idx) => {
+      const i = idx + 1;
+      const dep = base.add(i % 6, "hour").add(Math.floor(i / 6), "day");
+      const durationHours = 4 + (i % 7);
+      const finish = dep.add(durationHours, "hour").add((i % 3) * 10, "minute");
+      const multCount = (i % 3) === 0 ? 3 : (i % 3) === 1 ? 1 : 2;
+      const routeList = Array.from({ length: multCount }, (_, k) => routesPool[(i + k) % routesPool.length]);
+      return {
+        key: String(i),
+        mpt: mpts[i % mpts.length],
+        transportNo: `TR-2025-${String(i).padStart(4, "0")}`,
+        driver: drivers[i % drivers.length],
+        carBrand: brands[i % brands.length],
+        carPlate: plates[i % plates.length],
+        route: multCount === 1 ? routeList[0] : routeList,
+        addressCount: 8 + (i % 12),
+        outOfOrderCount: i % 4,
+        violationsPct: (i * 3) % 21,
+        planDeparture: dep.toISOString(),
+        planFinish: finish.toISOString(),
+      } as TransportRow;
+    });
+  }, []);
+
+
+  const [searchText, setSearchText] = React.useState("");
+
+  const normalized = (v: unknown) => String(v ?? "").toLowerCase();
+  const recordMatchesSearch = (r: TransportRow, q: string) => {
+    if (!q) return true;
+    const needle = q.toLowerCase();
+    const routeList = Array.isArray(r.route) ? r.route : [r.route];
+    const hay = [
+      r.mpt,
+      r.transportNo,
+      r.driver,
+      r.carBrand,
+      r.carPlate,
+      ...routeList,
+      routeList.join(" "),
+      r.addressCount,
+      r.outOfOrderCount,
+      `${r.violationsPct}%`,
+      dayjs(r.planDeparture).format("DD.MM.YYYY HH:mm"),
+      dayjs(r.planDeparture).toISOString(),
+      dayjs(r.planFinish).format("DD.MM.YYYY HH:mm"),
+      dayjs(r.planFinish).toISOString(),
+    ]
+      .map(normalized)
+      .join(" ");
+    return hay.includes(needle) || hay.indexOf(needle) !== -1;
+  };
+
+  const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
+
+  const [tablePagination, setTablePagination] = React.useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
+  React.useEffect(() => {
+    setTablePagination((p) => ({ ...p, current: 1 }));
+  }, [searchText]);
+
+
+  const [routeDialogOpen, setRouteDialogOpen] = React.useState(false);
+  const [routeDialogItems, setRouteDialogItems] = React.useState<string[]>([]);
+
+  const openRoutesDialog = (routes: string[]) => {
+    setRouteDialogItems(routes);
+    setRouteDialogOpen(true);
+  };
+
+  const columns: ColumnsType<TransportRow> = React.useMemo(
+    () => [
+      {
+        title: "МПТ",
+        dataIndex: "mpt",
+        key: "mpt",
+        sorter: (a: TransportRow, b: TransportRow) => a.mpt.localeCompare(b.mpt),
+      },
+      {
+        title: "№ Транспортировки",
+        dataIndex: "transportNo",
+        key: "transportNo",
+        sorter: (a: TransportRow, b: TransportRow) => a.transportNo.localeCompare(b.transportNo),
+      },
+      {
+        title: "Водитель",
+        dataIndex: "driver",
+        key: "driver",
+        sorter: (a: TransportRow, b: TransportRow) => a.driver.localeCompare(b.driver),
+        render: (_: string, rec: TransportRow) => (
+          <div className="driver-cell">
+            <div className="driver-name">{rec.driver}</div>
+            <div className="driver-meta">{rec.carBrand}</div>
+            <div className="driver-meta">{rec.carPlate}</div>
+          </div>
+        ),
+      },
+      {
+        title: "Маршрут",
+        dataIndex: "route",
+        key: "route",
+        sorter: (a: TransportRow, b: TransportRow) => {
+          const a1 = Array.isArray(a.route) ? a.route[0] : a.route;
+          const b1 = Array.isArray(b.route) ? b.route[0] : b.route;
+          return a1.localeCompare(b1);
+        },
+        render: (val: string | string[]) => {
+          const list = Array.isArray(val) ? val : [val];
+          if (list.length <= 1) return list[0];
+          const first = list[0];
+          const rest = list.length - 1;
+          return (
+            <span>
+              {first} {" "}
+              <Button
+                size="small"
+                variant="text"
+                onClick={(e) => { e.stopPropagation(); openRoutesDialog(list); }}
+              >
+                и ещё{rest > 1 ? ` ${rest}` : ""}
+              </Button>
+            </span>
+          );
+        },
+      },
+      {
+        title: "Кол-во адресов",
+        dataIndex: "addressCount",
+        key: "addressCount",
+        sorter: (a: TransportRow, b: TransportRow) => a.addressCount - b.addressCount,
+      },
+      {
+        title: "Кол-во точек не по-порядку",
+        dataIndex: "outOfOrderCount",
+        key: "outOfOrderCount",
+        sorter: (a: TransportRow, b: TransportRow) => a.outOfOrderCount - b.outOfOrderCount,
+      },
+      {
+        title: "% Нарушений",
+        dataIndex: "violationsPct",
+        key: "violationsPct",
+        sorter: (a: TransportRow, b: TransportRow) => a.violationsPct - b.violationsPct,
+        render: (v: number) => `${v}%`,
+      },
+      {
+        title: "План. время выезда",
+        dataIndex: "planDeparture",
+        key: "planDeparture",
+        sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planDeparture).valueOf() - dayjs(b.planDeparture).valueOf(),
+        render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
+      },
+      {
+        title: "План. оконч. транс-ки",
+        dataIndex: "planFinish",
+        key: "planFinish",
+        sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planFinish).valueOf() - dayjs(b.planFinish).valueOf(),
+        render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
+      },
+    ],
+    [tableData],
+  );
+
+  const [columnsMenuEl, setColumnsMenuEl] = React.useState<null | HTMLElement>(null);
+  const [visibleCols, setVisibleCols] = React.useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    (columns as any[]).forEach((c) => { init[String(c.key)] = true; });
+    return init;
+  });
+  const displayedColumns = React.useMemo(
+    () => columns.filter((c) => visibleCols[String(c.key)] !== false),
+    [columns, visibleCols],
+  );
+
   const draggingIdRef = React.useRef<string | null>(null);
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
@@ -171,11 +401,85 @@ export default function ReportsTransport() {
                 else cardRefs.current.delete(card.id);
               }}
             >
-              <div className="transport-card-title">{card.title}</div>
+              {card.id !== "card5" && <div className="transport-card-title">{card.title}</div>}
+              {card.id === "card5" && (
+                <div
+                  className="transport-card-content"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onDragStart={(e) => e.stopPropagation()}
+                >
+                  <div className="table-toolbar-row">
+                    <div className="toolbar-search-grow">
+                      <TextField
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        placeholder="Поиск по всей таблице"
+                        size="small"
+                        fullWidth
+                        variant="outlined"
+                        inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
+                      />
+                    </div>
+                    <Button className="columns-menu-button" aria-label="Настройка колонок" size="small" variant="text" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                        <rect x="3" y="6" width="18" height="2" fill="currentColor" />
+                        <rect x="3" y="11" width="18" height="2" fill="currentColor" />
+                        <rect x="3" y="16" width="18" height="2" fill="currentColor" />
+                      </svg>
+                    </Button>
+                    <Menu anchorEl={columnsMenuEl} open={Boolean(columnsMenuEl)} onClose={() => setColumnsMenuEl(null)}>
+                      {columns.map((col) => {
+                        const key = String(col.key);
+                        const label = typeof col.title === 'string' ? col.title : key;
+                        const checked = visibleCols[key] !== false;
+                        return (
+                          <MenuItem key={key} dense onClick={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))}>
+                            <FormControlLabel
+                              control={<Checkbox size="small" checked={checked} onChange={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))} />}
+                              label={label}
+                            />
+                          </MenuItem>
+                        );
+                      })}
+                    </Menu>
+                  </div>
+                  <ConfigProvider locale={ruLocale}>
+                    <Table
+                      dataSource={filteredData}
+                      columns={displayedColumns}
+                      size="middle"
+                      pagination={{ current: tablePagination.current, pageSize: tablePagination.pageSize, showSizeChanger: true, pageSizeOptions: ["10", "20", "50", "100"] }}
+                      rowKey="key"
+                      sticky
+                      scroll={{ y: 420 }}
+                      onChange={(pag) => setTablePagination({ current: pag.current || 1, pageSize: pag.pageSize || 10 })}
+                    />
+                  </ConfigProvider>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      <Dialog
+        open={routeDialogOpen}
+        onClose={() => setRouteDialogOpen(false)}
+        aria-labelledby="routes-dialog-title"
+      >
+        <DialogTitle id="routes-dialog-title">Полный маршрут</DialogTitle>
+        <DialogContent>
+          <ul className="routes-listbox" role="listbox" aria-label="Список маршрут��в">
+            {routeDialogItems.map((r, i) => (
+              <li role="option" key={`${r}-${i}`}>{r}</li>
+            ))}
+          </ul>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRouteDialogOpen(false)} variant="contained">Закрыть</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={dialogOpen}
