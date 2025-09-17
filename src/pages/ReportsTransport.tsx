@@ -25,6 +25,8 @@ type TransportRow = {
   mpt: string;
   transportNo: string;
   driver: string;
+  carBrand: string;
+  carPlate: string;
   route: string | string[];
   addressCount: number;
   outOfOrderCount: number;
@@ -78,6 +80,16 @@ export default function ReportsTransport() {
       "Попов П.П.",
       "Васильев В.В.",
     ];
+    const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
+    const plates = [
+      "А123ВС 161",
+      "В456ЕЕ 52",
+      "К789МН 34",
+      "О321ОР 77",
+      "Р654АК 78",
+      "Н987ТТ 16",
+      "Т246ХХ 66",
+    ];
     const routesPool = [
       "Ростов-на-Дону — Батайск",
       "Н.Новгород — Дзержинск",
@@ -100,6 +112,8 @@ export default function ReportsTransport() {
         mpt: mpts[i % mpts.length],
         transportNo: `TR-2025-${String(i).padStart(4, "0")}`,
         driver: drivers[i % drivers.length],
+        carBrand: brands[i % brands.length],
+        carPlate: plates[i % plates.length],
         route: multCount === 1 ? routeList[0] : routeList,
         addressCount: 8 + (i % 12),
         outOfOrderCount: i % 4,
@@ -124,6 +138,8 @@ export default function ReportsTransport() {
       r.mpt,
       r.transportNo,
       r.driver,
+      r.carBrand,
+      r.carPlate,
       ...routeList,
       routeList.join(" "),
       r.addressCount,
@@ -183,6 +199,13 @@ export default function ReportsTransport() {
         filters: unique("driver"),
         onFilter: (val: any, record: TransportRow) => record.driver === val,
         sorter: (a: TransportRow, b: TransportRow) => a.driver.localeCompare(b.driver),
+        render: (_: string, rec: TransportRow) => (
+          <div className="driver-cell">
+            <div className="driver-name">{rec.driver}</div>
+            <div className="driver-meta">{rec.carBrand}</div>
+            <div className="driver-meta">{rec.carPlate}</div>
+          </div>
+        ),
       },
       {
         title: "Маршрут",
@@ -211,7 +234,7 @@ export default function ReportsTransport() {
                 variant="text"
                 onClick={(e) => { e.stopPropagation(); openRoutesDialog(list); }}
               >
-                �� ещё{rest > 1 ? ` ${rest}` : ""}
+                и ещё{rest > 1 ? ` ${rest}` : ""}
               </Button>
             </span>
           );
@@ -243,7 +266,7 @@ export default function ReportsTransport() {
         render: (v: number) => `${v}%`,
       },
       {
-        title: "План. ��ремя выезда",
+        title: "План. время выезда",
         dataIndex: "planDeparture",
         key: "planDeparture",
         filters: unique("planDeparture"),
@@ -430,7 +453,7 @@ export default function ReportsTransport() {
       >
         <DialogTitle id="routes-dialog-title">Полный маршрут</DialogTitle>
         <DialogContent>
-          <ul className="routes-listbox" role="listbox" aria-label="Список маршрутов">
+          <ul className="routes-listbox" role="listbox" aria-label="Список маршрут��в">
             {routeDialogItems.map((r, i) => (
               <li role="option" key={`${r}-${i}`}>{r}</li>
             ))}
@@ -474,7 +497,7 @@ export default function ReportsTransport() {
                   className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
                   classNamePrefix="planning"
                   isMulti
-                  placeholder="Мест�� планирования транспортировки"
+                  placeholder="Место планирования транспортировки"
                   options={planningPlaces}
                   value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
                   onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value)); setTouchedPlanning(true); }}
