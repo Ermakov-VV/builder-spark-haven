@@ -13,7 +13,6 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import DehazeIcon from "@mui/icons-material/Dehaze";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
 import ruRU from "rsuite/esm/locales/ru_RU";
@@ -54,7 +53,7 @@ export default function ReportsTransport() {
     () => [
       { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
       { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
-      { mpt: "NN01", name: "РО�� Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
+      { mpt: "NN01", name: "РОМ Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
     ],
     [],
   );
@@ -83,7 +82,7 @@ export default function ReportsTransport() {
       "Кузнецов К.К.",
       "Смирнов С.С.",
       "Попов П.П.",
-      "��асильев В.В.",
+      "Васильев В.В.",
     ];
     const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
     const plates = [
