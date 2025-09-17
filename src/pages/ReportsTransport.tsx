@@ -81,7 +81,7 @@ export default function ReportsTransport() {
       "Сидоров С.С.",
       "Кузнецов К.К.",
       "Смирнов С.С.",
-      "Попов П.П.",
+      "��опов П.П.",
       "Васильев В.В.",
     ];
     const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
@@ -446,6 +446,8 @@ export default function ReportsTransport() {
                       size="middle"
                       pagination={{ pageSize: 10, showSizeChanger: true }}
                       rowKey="key"
+                      sticky
+                      scroll={{ y: 420 }}
                     />
                   </ConfigProvider>
                 </div>
