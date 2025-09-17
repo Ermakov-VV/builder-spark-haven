@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -13,6 +14,21 @@ import Select, { components, MenuListProps, OptionProps, MultiValue } from "reac
 import ruRU from "rsuite/esm/locales/ru_RU";
 import "rsuite/dist/rsuite-no-reset.min.css";
 import PageBreadcrumbs from "../components/PageBreadcrumbs";
+import { Table } from "antd";
+import dayjs from "dayjs";
+
+type TransportRow = {
+  key: string;
+  mpt: string;
+  transportNo: string;
+  driver: string;
+  route: string;
+  addressCount: number;
+  outOfOrderCount: number;
+  violationsPct: number;
+  planDeparture: string; // ISO
+  planFinish: string; // ISO
+};
 
 export default function ReportsTransport() {
   const navigate = useNavigate();
@@ -46,6 +62,132 @@ export default function ReportsTransport() {
     { id: "card4", title: "Карточка 4" },
     { id: "card5", title: "Карточка 5" },
   ]);
+
+  const tableData: TransportRow[] = React.useMemo(
+    () => [
+      {
+        key: "1",
+        mpt: "VE86",
+        transportNo: "TR-2025-0001",
+        driver: "Иванов И.И.",
+        route: "Ростов-на-Дону — Батайск",
+        addressCount: 12,
+        outOfOrderCount: 2,
+        violationsPct: 8,
+        planDeparture: "2025-09-17T08:00:00Z",
+        planFinish: "2025-09-17T16:30:00Z",
+      },
+      {
+        key: "2",
+        mpt: "RD01",
+        transportNo: "TR-2025-0002",
+        driver: "Петров П.П.",
+        route: "Н.Новгород — Дзержинск",
+        addressCount: 9,
+        outOfOrderCount: 1,
+        violationsPct: 5,
+        planDeparture: "2025-09-17T09:15:00Z",
+        planFinish: "2025-09-17T14:45:00Z",
+      },
+      {
+        key: "3",
+        mpt: "NN01",
+        transportNo: "TR-2025-0003",
+        driver: "Сидоров С.С.",
+        route: "Ростов-на-Дону — Азов",
+        addressCount: 15,
+        outOfOrderCount: 0,
+        violationsPct: 0,
+        planDeparture: "2025-09-18T07:30:00Z",
+        planFinish: "2025-09-18T15:10:00Z",
+      },
+    ],
+    [],
+  );
+
+  const unique = <T extends keyof TransportRow>(key: T) =>
+    Array.from(new Set(tableData.map((r) => String(r[key])))).map((v) => ({ text: v, value: v }));
+
+  const columns = React.useMemo(
+    () => [
+      {
+        title: "МПТ",
+        dataIndex: "mpt",
+        key: "mpt",
+        filters: unique("mpt"),
+        onFilter: (val: any, record: TransportRow) => record.mpt === val,
+        sorter: (a: TransportRow, b: TransportRow) => a.mpt.localeCompare(b.mpt),
+      },
+      {
+        title: "№ Транспортировки",
+        dataIndex: "transportNo",
+        key: "transportNo",
+        filters: unique("transportNo"),
+        onFilter: (val: any, record: TransportRow) => record.transportNo === val,
+        sorter: (a: TransportRow, b: TransportRow) => a.transportNo.localeCompare(b.transportNo),
+      },
+      {
+        title: "Водитель",
+        dataIndex: "driver",
+        key: "driver",
+        filters: unique("driver"),
+        onFilter: (val: any, record: TransportRow) => record.driver === val,
+        sorter: (a: TransportRow, b: TransportRow) => a.driver.localeCompare(b.driver),
+      },
+      {
+        title: "Маршрут",
+        dataIndex: "route",
+        key: "route",
+        filters: unique("route"),
+        onFilter: (val: any, record: TransportRow) => record.route === val,
+        sorter: (a: TransportRow, b: TransportRow) => a.route.localeCompare(b.route),
+      },
+      {
+        title: "Кол-во адресов",
+        dataIndex: "addressCount",
+        key: "addressCount",
+        filters: unique("addressCount"),
+        onFilter: (val: any, record: TransportRow) => String(record.addressCount) === String(val),
+        sorter: (a: TransportRow, b: TransportRow) => a.addressCount - b.addressCount,
+      },
+      {
+        title: "Кол-во точек не по-порядку",
+        dataIndex: "outOfOrderCount",
+        key: "outOfOrderCount",
+        filters: unique("outOfOrderCount"),
+        onFilter: (val: any, record: TransportRow) => String(record.outOfOrderCount) === String(val),
+        sorter: (a: TransportRow, b: TransportRow) => a.outOfOrderCount - b.outOfOrderCount,
+      },
+      {
+        title: "% Нарушений",
+        dataIndex: "violationsPct",
+        key: "violationsPct",
+        filters: unique("violationsPct"),
+        onFilter: (val: any, record: TransportRow) => String(record.violationsPct) === String(val),
+        sorter: (a: TransportRow, b: TransportRow) => a.violationsPct - b.violationsPct,
+        render: (v: number) => `${v}%`,
+      },
+      {
+        title: "План. время выезда",
+        dataIndex: "planDeparture",
+        key: "planDeparture",
+        filters: unique("planDeparture"),
+        onFilter: (val: any, record: TransportRow) => record.planDeparture === val,
+        sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planDeparture).valueOf() - dayjs(b.planDeparture).valueOf(),
+        render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
+      },
+      {
+        title: "План. оконч. транс-ки",
+        dataIndex: "planFinish",
+        key: "planFinish",
+        filters: unique("planFinish"),
+        onFilter: (val: any, record: TransportRow) => record.planFinish === val,
+        sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planFinish).valueOf() - dayjs(b.planFinish).valueOf(),
+        render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
+      },
+    ],
+    [tableData],
+  );
   const draggingIdRef = React.useRef<string | null>(null);
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
@@ -172,6 +314,22 @@ export default function ReportsTransport() {
               }}
             >
               <div className="transport-card-title">{card.title}</div>
+              {card.id === "card5" && (
+                <div
+                  className="transport-card-content"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onDragStart={(e) => e.stopPropagation()}
+                >
+                  <Table
+                    dataSource={tableData}
+                    columns={columns as any}
+                    size="middle"
+                    pagination={{ pageSize: 10, showSizeChanger: true }}
+                    rowKey="key"
+                  />
+                </div>
+              )}
             </div>
           </div>
         ))}
