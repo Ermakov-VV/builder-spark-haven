@@ -128,8 +128,6 @@ export default function ReportsTransport() {
     });
   }, []);
 
-  const unique = <T extends keyof TransportRow>(key: T) =>
-    Array.from(new Set(tableData.map((r) => String(r[key])))).map((v) => ({ text: v, value: v }));
 
   const [searchText, setSearchText] = React.useState("");
 
@@ -161,14 +159,6 @@ export default function ReportsTransport() {
 
   const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
 
-  const routeFilters = React.useMemo(() => {
-    const s = new Set<string>();
-    tableData.forEach((r) => {
-      const list = Array.isArray(r.route) ? r.route : [r.route];
-      list.forEach((v) => s.add(v));
-    });
-    return Array.from(s).map((v) => ({ text: v, value: v }));
-  }, [tableData]);
 
   const [routeDialogOpen, setRouteDialogOpen] = React.useState(false);
   const [routeDialogItems, setRouteDialogItems] = React.useState<string[]>([]);
@@ -184,24 +174,18 @@ export default function ReportsTransport() {
         title: "МПТ",
         dataIndex: "mpt",
         key: "mpt",
-        filters: unique("mpt"),
-        onFilter: (val: any, record: TransportRow) => record.mpt === val,
         sorter: (a: TransportRow, b: TransportRow) => a.mpt.localeCompare(b.mpt),
       },
       {
         title: "№ Транспортировки",
         dataIndex: "transportNo",
         key: "transportNo",
-        filters: unique("transportNo"),
-        onFilter: (val: any, record: TransportRow) => record.transportNo === val,
         sorter: (a: TransportRow, b: TransportRow) => a.transportNo.localeCompare(b.transportNo),
       },
       {
         title: "Водитель",
         dataIndex: "driver",
         key: "driver",
-        filters: unique("driver"),
-        onFilter: (val: any, record: TransportRow) => record.driver === val,
         sorter: (a: TransportRow, b: TransportRow) => a.driver.localeCompare(b.driver),
         render: (_: string, rec: TransportRow) => (
           <div className="driver-cell">
@@ -215,11 +199,6 @@ export default function ReportsTransport() {
         title: "Маршрут",
         dataIndex: "route",
         key: "route",
-        filters: routeFilters,
-        onFilter: (val: any, record: TransportRow) => {
-          const list = Array.isArray(record.route) ? record.route : [record.route];
-          return list.includes(String(val));
-        },
         sorter: (a: TransportRow, b: TransportRow) => {
           const a1 = Array.isArray(a.route) ? a.route[0] : a.route;
           const b1 = Array.isArray(b.route) ? b.route[0] : b.route;
@@ -248,24 +227,18 @@ export default function ReportsTransport() {
         title: "Кол-во адресов",
         dataIndex: "addressCount",
         key: "addressCount",
-        filters: unique("addressCount"),
-        onFilter: (val: any, record: TransportRow) => String(record.addressCount) === String(val),
         sorter: (a: TransportRow, b: TransportRow) => a.addressCount - b.addressCount,
       },
       {
         title: "Кол-во точек не по-порядку",
         dataIndex: "outOfOrderCount",
         key: "outOfOrderCount",
-        filters: unique("outOfOrderCount"),
-        onFilter: (val: any, record: TransportRow) => String(record.outOfOrderCount) === String(val),
         sorter: (a: TransportRow, b: TransportRow) => a.outOfOrderCount - b.outOfOrderCount,
       },
       {
         title: "% Нарушений",
         dataIndex: "violationsPct",
         key: "violationsPct",
-        filters: unique("violationsPct"),
-        onFilter: (val: any, record: TransportRow) => String(record.violationsPct) === String(val),
         sorter: (a: TransportRow, b: TransportRow) => a.violationsPct - b.violationsPct,
         render: (v: number) => `${v}%`,
       },
@@ -273,8 +246,6 @@ export default function ReportsTransport() {
         title: "План. время выезда",
         dataIndex: "planDeparture",
         key: "planDeparture",
-        filters: unique("planDeparture"),
-        onFilter: (val: any, record: TransportRow) => record.planDeparture === val,
         sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planDeparture).valueOf() - dayjs(b.planDeparture).valueOf(),
         render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
       },
@@ -282,8 +253,6 @@ export default function ReportsTransport() {
         title: "План. оконч. транс-ки",
         dataIndex: "planFinish",
         key: "planFinish",
-        filters: unique("planFinish"),
-        onFilter: (val: any, record: TransportRow) => record.planFinish === val,
         sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planFinish).valueOf() - dayjs(b.planFinish).valueOf(),
         render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
       },
