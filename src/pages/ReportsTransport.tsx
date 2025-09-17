@@ -23,6 +23,7 @@ import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import ruLocale from "antd/locale/ru_RU";
+import ApexChart from "react-apexcharts";
 
 type TransportRow = {
   key: string;
@@ -52,7 +53,7 @@ export default function ReportsTransport() {
   const planningPlaces = React.useMemo(
     () => [
       { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
-      { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
+      { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РО�� Ростов-на-Дону" },
       { mpt: "NN01", name: "РОМ Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
     ],
     [],
@@ -69,7 +70,7 @@ export default function ReportsTransport() {
     { id: "card1", title: "Карточка 1" },
     { id: "card2", title: "Карточка 2" },
     { id: "card3", title: "Карточк�� 3" },
-    { id: "card4", title: "Карточка 4" },
+    { id: "card4", title: "Количество транспортировок по дням" },
     { id: "card5", title: "Карточка 5" },
   ]);
 
@@ -97,36 +98,48 @@ export default function ReportsTransport() {
     const routesPool = [
       "Ростов-на-Дону — Батайск",
       "Н.Новгород — Дзержинск",
-      "Ростов-на-Дону — Азов",
+      "Ростов-на-Дону ��� Азов",
       "Москва — Химки",
       "Санкт-Петербург — Пушкин",
       "Казань — Зеленодольск",
       "Екатеринбург — Березовский",
     ];
-    const base = dayjs("2025-09-17T08:00:00Z");
-    return Array.from({ length: 30 }, (_, idx) => {
-      const i = idx + 1;
-      const dep = base.add(i % 6, "hour").add(Math.floor(i / 6), "day");
-      const durationHours = 4 + (i % 7);
-      const finish = dep.add(durationHours, "hour").add((i % 3) * 10, "minute");
-      const multCount = (i % 3) === 0 ? 3 : (i % 3) === 1 ? 1 : 2;
-      const routeList = Array.from({ length: multCount }, (_, k) => routesPool[(i + k) % routesPool.length]);
-      return {
-        key: String(i),
-        mpt: mpts[i % mpts.length],
-        transportNo: `TR-2025-${String(i).padStart(4, "0")}`,
-        driver: drivers[i % drivers.length],
-        carBrand: brands[i % brands.length],
-        carPlate: plates[i % plates.length],
-        route: multCount === 1 ? routeList[0] : routeList,
-        addressCount: 8 + (i % 12),
-        outOfOrderCount: i % 4,
-        violationsPct: (i * 3) % 21,
-        planDeparture: dep.toISOString(),
-        planFinish: finish.toISOString(),
-      } as TransportRow;
-    });
-  }, []);
+
+    const monthRef = dateRange?.[0] ? dayjs(dateRange[0]) : dayjs();
+    const mStart = monthRef.startOf("month");
+    const mEnd = monthRef.endOf("month");
+
+    const rows: TransportRow[] = [];
+    let keySeq = 1;
+    let cur = mStart.startOf("day");
+    while (cur.isBefore(mEnd) || cur.isSame(mEnd)) {
+      const dayIdx = cur.date();
+      const count = (dayIdx % 3) + 1; // 1..4 перевозок в день, детерминированно
+      for (let c = 0; c < count; c++) {
+        const dep = cur.hour(8 + (c * 3) % 10).minute((c * 17) % 60).second(0).millisecond(0);
+        const durationHours = 4 + ((dayIdx + c) % 7);
+        const finish = dep.add(durationHours, "hour").add(((dayIdx + c) % 3) * 10, "minute");
+        const multCount = (dayIdx + c) % 3 === 0 ? 3 : (dayIdx + c) % 3 === 1 ? 1 : 2;
+        const routeList = Array.from({ length: multCount }, (_, k) => routesPool[(dayIdx + c + k) % routesPool.length]);
+        rows.push({
+          key: String(keySeq++),
+          mpt: mpts[(dayIdx + c) % mpts.length],
+          transportNo: `TR-${monthRef.format("YYYYMM")}-${String(keySeq).padStart(4, "0")}`,
+          driver: drivers[(dayIdx + c) % drivers.length],
+          carBrand: brands[(dayIdx + c) % brands.length],
+          carPlate: plates[(dayIdx + c) % plates.length],
+          route: multCount === 1 ? routeList[0] : routeList,
+          addressCount: 8 + ((dayIdx + c) % 12),
+          outOfOrderCount: (dayIdx + c) % 4,
+          violationsPct: ((dayIdx + c) * 3) % 21,
+          planDeparture: dep.toISOString(),
+          planFinish: finish.toISOString(),
+        } as TransportRow);
+      }
+      cur = cur.add(1, "day");
+    }
+    return rows;
+  }, [dateRange]);
 
 
   const [searchText, setSearchText] = React.useState("");
@@ -158,6 +171,88 @@ export default function ReportsTransport() {
   };
 
   const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
+
+  const dateChart = React.useMemo(() => {
+    // One month window; prefer month of selected start date, else month of earliest data, else current month
+    const startSel = dateRange?.[0] ? dayjs(dateRange[0]) : null;
+    let monthRef: dayjs.Dayjs | null = startSel;
+    if (!monthRef) {
+      let minD: dayjs.Dayjs | null = null;
+      tableData.forEach((r) => {
+        const d = dayjs(r.planDeparture);
+        if (!minD || d.isBefore(minD)) minD = d;
+      });
+      monthRef = minD || dayjs();
+    }
+    const mStart = monthRef.startOf('month');
+    const mEnd = monthRef.endOf('month');
+
+    const labelsAll: string[] = [];
+    const keysAll: string[] = [];
+    let cur = mStart.startOf('day');
+    const last = mEnd.startOf('day');
+    while (cur.isBefore(last) || cur.isSame(last)) {
+      labelsAll.push(cur.format('DD.MM.YYYY'));
+      keysAll.push(cur.format('YYYY-MM-DD'));
+      cur = cur.add(1, 'day');
+    }
+
+    const totalsMap = new Map<string, number>();
+    const violMap = new Map<string, number>();
+    keysAll.forEach((k) => { totalsMap.set(k, 0); violMap.set(k, 0); });
+    tableData.forEach((r) => {
+      const k = dayjs(r.planDeparture).format('YYYY-MM-DD');
+      if (!totalsMap.has(k)) return;
+      totalsMap.set(k, (totalsMap.get(k) || 0) + 1);
+      if ((r.violationsPct ?? 0) > 0) violMap.set(k, (violMap.get(k) || 0) + 1);
+    });
+
+    // Drop days without transports (no empty values)
+    const rows = keysAll.map((k, i) => ({ label: labelsAll[i], t: totalsMap.get(k) || 0, v: violMap.get(k) || 0 }))
+      .filter((r) => r.t > 0);
+
+    return {
+      labels: rows.map((r) => r.label),
+      totals: rows.map((r) => r.t),
+      violations: rows.map((r) => r.v),
+    };
+  }, [tableData, dateRange]);
+
+  const yMax = React.useMemo(() => {
+    const t = dateChart.totals || [];
+    const v = dateChart.violations || [];
+    const maxVal = Math.max(0, ...(t.length ? t : [0]), ...(v.length ? v : [0]));
+    return Math.max(1, maxVal);
+  }, [dateChart]);
+
+  const apexSeries = React.useMemo(() => (
+    [
+      { name: "Всего", data: dateChart.totals || [] },
+      { name: "С нарушениями", data: dateChart.violations || [] },
+    ]
+  ), [dateChart]);
+
+  const apexOptions = React.useMemo(() => ({
+    chart: { type: 'bar', toolbar: { show: false } },
+    plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
+    colors: ['#008ffb', '#feb019'],
+    xaxis: {
+      categories: dateChart.labels || [],
+      tickPlacement: 'between',
+      labels: { rotate: -45, hideOverlappingLabels: false, trim: false },
+    },
+    yaxis: {
+      min: 0,
+      max: yMax,
+      tickAmount: Math.max(1, yMax),
+      forceNiceScale: false,
+      labels: { formatter: (val: number) => `${Math.round(val)}` },
+    },
+    legend: { position: 'bottom', horizontalAlign: 'center' },
+    dataLabels: { enabled: false },
+    grid: { yaxis: { lines: { show: true } } },
+    tooltip: { shared: true, intersect: false },
+  }), [dateChart, yMax]);
 
   const [tablePagination, setTablePagination] = React.useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
   React.useEffect(() => {
@@ -248,7 +343,7 @@ export default function ReportsTransport() {
         render: (v: number) => `${v}%`,
       },
       {
-        title: "План. время выезда",
+        title: "П��ан. время выезда",
         dataIndex: "planDeparture",
         key: "planDeparture",
         sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planDeparture).valueOf() - dayjs(b.planDeparture).valueOf(),
@@ -280,6 +375,7 @@ export default function ReportsTransport() {
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
   const cardRefs = React.useRef(new Map<string, HTMLElement>());
+
 
   const measurePositions = () => {
     const positions: Record<string, DOMRect> = {};
@@ -366,6 +462,8 @@ export default function ReportsTransport() {
     setDraggingId(null);
   };
 
+
+
   const handleApply = () => {
     setDialogOpen(false);
   };
@@ -387,7 +485,7 @@ export default function ReportsTransport() {
         {cards.map((card, idx) => (
           <div
             key={card.id}
-            className={`transport-card-wrapper${card.id === "card4" ? " full-width" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${overIndex === idx ? " drag-over" : ""}`}
+            className={`transport-card-wrapper${card.id === "card4" ? " full-width full-rest" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${overIndex === idx ? " drag-over" : ""}`}
             onDragOver={onCardDragOver(idx)}
             onDrop={onCardDrop(idx)}
           >
@@ -402,6 +500,27 @@ export default function ReportsTransport() {
               }}
             >
               {card.id !== "card5" && <div className="transport-card-title">{card.title}</div>}
+              {card.id === "card1" && (
+                <div
+                  className="transport-card-content stat-summary-block"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onDragStart={(e) => e.stopPropagation()}
+                >
+                  <div className="stat-summary-value" aria-label="Общее количество транспортировок значение">1300</div>
+                  <div className="stat-summary-label" aria-label="Общее количество ��ранспортировок подпись">Общее количество транспортировок</div>
+                </div>
+              )}
+              {card.id === "card4" && (
+                <div className="transport-card-content" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onDragStart={(e) => e.stopPropagation()}>
+                  <ApexChart
+                    type="bar"
+                    height={450}
+                    options={apexOptions as any}
+                    series={apexSeries as any}
+                  />
+                </div>
+              )}
               {card.id === "card5" && (
                 <div
                   className="transport-card-content"
@@ -543,7 +662,7 @@ export default function ReportsTransport() {
                               ref={(el) => el && (el.indeterminate = someSelected)}
                               onChange={(e) => setSelectedPlanning(e.target.checked ? allValues : [])}
                             />
-                            <span>Выбрать все</span>
+                            <span>��ыбрать все</span>
                           </label>
                           {props.children}
                         </components.MenuList>
@@ -569,7 +688,7 @@ export default function ReportsTransport() {
               </div>
             </div>
             {!isPlanningValid && touchedPlanning && (
-              <div className="field-error-text">Выберите место планирования транспортировки</div>
+              <div className="field-error-text">Выберите мес��о планирования транспортировки</div>
             )}
           </CustomProvider>
         </DialogContent>

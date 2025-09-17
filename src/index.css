@@ -182,11 +182,18 @@
 .transport-grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 12px; margin: 12px 0 16px; }
 .transport-card-wrapper { height: calc((100vh / var(--grid-rows)) * 15); border-radius: 16px; }
 .transport-card-wrapper.full-width { grid-column: 1 / -1; }
+.transport-card-wrapper.fixed-250 { height: 250px; }
+.transport-card-wrapper.fixed-500 { height: 500px; }
 .transport-card-wrapper.full-rest { height: auto; }
 .transport-card-wrapper.full-rest .transport-card { height: auto; }
 .transport-card-wrapper.drag-over { outline: 2px dashed #1976d2; outline-offset: -4px; }
 .transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; cursor: move; user-select: none; will-change: transform; transition: transform 250ms ease, box-shadow 150ms ease; }
 .transport-card.is-dragging { transform: scale(1.02); box-shadow: 0 14px 30px rgba(0,0,0,0.2); }
+
+/* Summary stat block styles */
+.stat-summary-block { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 100%; }
+.stat-summary-value { font-weight: 800; font-size: 32px; line-height: 1; }
+.stat-summary-label { font-size: 12px; opacity: 0.75; text-align: center; }
 .transport-card-title { font-weight: 600; opacity: 0.9; }
 .transport-card:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16); }
 .transport-card-content { margin-top: 8px; overflow: auto; cursor: default; }
