@@ -63,47 +63,46 @@ export default function ReportsTransport() {
     { id: "card5", title: "Карточка 5" },
   ]);
 
-  const tableData: TransportRow[] = React.useMemo(
-    () => [
-      {
-        key: "1",
-        mpt: "VE86",
-        transportNo: "TR-2025-0001",
-        driver: "Иванов И.И.",
-        route: "Росто��-на-Дону — Батайск",
-        addressCount: 12,
-        outOfOrderCount: 2,
-        violationsPct: 8,
-        planDeparture: "2025-09-17T08:00:00Z",
-        planFinish: "2025-09-17T16:30:00Z",
-      },
-      {
-        key: "2",
-        mpt: "RD01",
-        transportNo: "TR-2025-0002",
-        driver: "Петров П.П.",
-        route: "Н.Новгород — Дзержинск",
-        addressCount: 9,
-        outOfOrderCount: 1,
-        violationsPct: 5,
-        planDeparture: "2025-09-17T09:15:00Z",
-        planFinish: "2025-09-17T14:45:00Z",
-      },
-      {
-        key: "3",
-        mpt: "NN01",
-        transportNo: "TR-2025-0003",
-        driver: "Сидоров С.С.",
-        route: "Ростов-на-Дону — Азов",
-        addressCount: 15,
-        outOfOrderCount: 0,
-        violationsPct: 0,
-        planDeparture: "2025-09-18T07:30:00Z",
-        planFinish: "2025-09-18T15:10:00Z",
-      },
-    ],
-    [],
-  );
+  const tableData: TransportRow[] = React.useMemo(() => {
+    const mpts = ["VE86", "RD01", "NN01", "MSK1", "SPB1"];
+    const drivers = [
+      "Иванов И.И.",
+      "Петров П.П.",
+      "Сидоров С.С.",
+      "Кузнецов К.К.",
+      "Смирнов С.С.",
+      "Попов П.П.",
+      "Васильев В.В.",
+    ];
+    const routes = [
+      "Ростов-на-Дону — Батайск",
+      "Н.Новгород — Дзержинск",
+      "Ростов-на-Дону — Азов",
+      "Москва — Химки",
+      "Санкт-Петербург — Пушкин",
+      "Казань — Зеленодольск",
+      "Екатеринбург — Березовский",
+    ];
+    const base = dayjs("2025-09-17T08:00:00Z");
+    return Array.from({ length: 30 }, (_, idx) => {
+      const i = idx + 1;
+      const dep = base.add(i % 6, "hour").add(Math.floor(i / 6), "day");
+      const durationHours = 4 + (i % 7);
+      const finish = dep.add(durationHours, "hour").add((i % 3) * 10, "minute");
+      return {
+        key: String(i),
+        mpt: mpts[i % mpts.length],
+        transportNo: `TR-2025-${String(i).padStart(4, "0")}`,
+        driver: drivers[i % drivers.length],
+        route: routes[i % routes.length],
+        addressCount: 8 + (i % 12),
+        outOfOrderCount: i % 4,
+        violationsPct: (i * 3) % 21,
+        planDeparture: dep.toISOString(),
+        planFinish: finish.toISOString(),
+      } as TransportRow;
+    });
+  }, []);
 
   const unique = <T extends keyof TransportRow>(key: T) =>
     Array.from(new Set(tableData.map((r) => String(r[key])))).map((v) => ({ text: v, value: v }));
