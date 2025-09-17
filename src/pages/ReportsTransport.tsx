@@ -7,6 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  TextField,
 } from "@mui/material";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
@@ -106,6 +107,32 @@ export default function ReportsTransport() {
 
   const unique = <T extends keyof TransportRow>(key: T) =>
     Array.from(new Set(tableData.map((r) => String(r[key])))).map((v) => ({ text: v, value: v }));
+
+  const [searchText, setSearchText] = React.useState("");
+
+  const normalized = (v: unknown) => String(v ?? "").toLowerCase();
+  const recordMatchesSearch = (r: TransportRow, q: string) => {
+    if (!q) return true;
+    const needle = q.toLowerCase();
+    const hay = [
+      r.mpt,
+      r.transportNo,
+      r.driver,
+      r.route,
+      r.addressCount,
+      r.outOfOrderCount,
+      `${r.violationsPct}%`,
+      dayjs(r.planDeparture).format("DD.MM.YYYY HH:mm"),
+      dayjs(r.planDeparture).toISOString(),
+      dayjs(r.planFinish).format("DD.MM.YYYY HH:mm"),
+      dayjs(r.planFinish).toISOString(),
+    ]
+      .map(normalized)
+      .join(" ");
+    return hay.includes(needle) || hay.indexOf(needle) !== -1;
+  };
+
+  const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
 
   const columns: ColumnsType<TransportRow> = React.useMemo(
     () => [
@@ -312,7 +339,7 @@ export default function ReportsTransport() {
                 else cardRefs.current.delete(card.id);
               }}
             >
-              <div className="transport-card-title">{card.title}</div>
+              {card.id !== "card5" && <div className="transport-card-title">{card.title}</div>}
               {card.id === "card5" && (
                 <div
                   className="transport-card-content"
@@ -320,8 +347,19 @@ export default function ReportsTransport() {
                   onTouchStart={(e) => e.stopPropagation()}
                   onDragStart={(e) => e.stopPropagation()}
                 >
+                  <div className="table-global-filter-row">
+                    <TextField
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      placeholder="Поиск по всей таблице"
+                      size="small"
+                      fullWidth
+                      variant="outlined"
+                      inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
+                    />
+                  </div>
                   <Table
-                    dataSource={tableData}
+                    dataSource={filteredData}
                     columns={columns}
                     size="middle"
                     pagination={{ pageSize: 10, showSizeChanger: true }}
