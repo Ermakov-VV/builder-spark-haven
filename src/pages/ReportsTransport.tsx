@@ -25,7 +25,7 @@ type TransportRow = {
   mpt: string;
   transportNo: string;
   driver: string;
-  route: string;
+  route: string | string[];
   addressCount: number;
   outOfOrderCount: number;
   violationsPct: number;
@@ -78,7 +78,7 @@ export default function ReportsTransport() {
       "Попов П.П.",
       "Васильев В.В.",
     ];
-    const routes = [
+    const routesPool = [
       "Ростов-на-Дону — Батайск",
       "Н.Новгород — Дзержинск",
       "Ростов-на-Дону — Азов",
@@ -93,12 +93,14 @@ export default function ReportsTransport() {
       const dep = base.add(i % 6, "hour").add(Math.floor(i / 6), "day");
       const durationHours = 4 + (i % 7);
       const finish = dep.add(durationHours, "hour").add((i % 3) * 10, "minute");
+      const multCount = (i % 3) === 0 ? 3 : (i % 3) === 1 ? 1 : 2;
+      const routeList = Array.from({ length: multCount }, (_, k) => routesPool[(i + k) % routesPool.length]);
       return {
         key: String(i),
         mpt: mpts[i % mpts.length],
         transportNo: `TR-2025-${String(i).padStart(4, "0")}`,
         driver: drivers[i % drivers.length],
-        route: routes[i % routes.length],
+        route: multCount === 1 ? routeList[0] : routeList,
         addressCount: 8 + (i % 12),
         outOfOrderCount: i % 4,
         violationsPct: (i * 3) % 21,
@@ -117,11 +119,13 @@ export default function ReportsTransport() {
   const recordMatchesSearch = (r: TransportRow, q: string) => {
     if (!q) return true;
     const needle = q.toLowerCase();
+    const routeList = Array.isArray(r.route) ? r.route : [r.route];
     const hay = [
       r.mpt,
       r.transportNo,
       r.driver,
-      r.route,
+      ...routeList,
+      routeList.join(" "),
       r.addressCount,
       r.outOfOrderCount,
       `${r.violationsPct}%`,
@@ -136,6 +140,23 @@ export default function ReportsTransport() {
   };
 
   const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
+
+  const routeFilters = React.useMemo(() => {
+    const s = new Set<string>();
+    tableData.forEach((r) => {
+      const list = Array.isArray(r.route) ? r.route : [r.route];
+      list.forEach((v) => s.add(v));
+    });
+    return Array.from(s).map((v) => ({ text: v, value: v }));
+  }, [tableData]);
+
+  const [routeDialogOpen, setRouteDialogOpen] = React.useState(false);
+  const [routeDialogItems, setRouteDialogItems] = React.useState<string[]>([]);
+
+  const openRoutesDialog = (routes: string[]) => {
+    setRouteDialogItems(routes);
+    setRouteDialogOpen(true);
+  };
 
   const columns: ColumnsType<TransportRow> = React.useMemo(
     () => [
@@ -167,9 +188,34 @@ export default function ReportsTransport() {
         title: "Маршрут",
         dataIndex: "route",
         key: "route",
-        filters: unique("route"),
-        onFilter: (val: any, record: TransportRow) => record.route === val,
-        sorter: (a: TransportRow, b: TransportRow) => a.route.localeCompare(b.route),
+        filters: routeFilters,
+        onFilter: (val: any, record: TransportRow) => {
+          const list = Array.isArray(record.route) ? record.route : [record.route];
+          return list.includes(String(val));
+        },
+        sorter: (a: TransportRow, b: TransportRow) => {
+          const a1 = Array.isArray(a.route) ? a.route[0] : a.route;
+          const b1 = Array.isArray(b.route) ? b.route[0] : b.route;
+          return a1.localeCompare(b1);
+        },
+        render: (val: string | string[]) => {
+          const list = Array.isArray(val) ? val : [val];
+          if (list.length <= 1) return list[0];
+          const first = list[0];
+          const rest = list.length - 1;
+          return (
+            <span>
+              {first} {" "}
+              <Button
+                size="small"
+                variant="text"
+                onClick={(e) => { e.stopPropagation(); openRoutesDialog(list); }}
+              >
+                �� ещё{rest > 1 ? ` ${rest}` : ""}
+              </Button>
+            </span>
+          );
+        },
       },
       {
         title: "Кол-во адресов",
@@ -197,7 +243,7 @@ export default function ReportsTransport() {
         render: (v: number) => `${v}%`,
       },
       {
-        title: "План. время выезда",
+        title: "План. ��ремя выезда",
         dataIndex: "planDeparture",
         key: "planDeparture",
         filters: unique("planDeparture"),
@@ -378,6 +424,24 @@ export default function ReportsTransport() {
       </div>
 
       <Dialog
+        open={routeDialogOpen}
+        onClose={() => setRouteDialogOpen(false)}
+        aria-labelledby="routes-dialog-title"
+      >
+        <DialogTitle id="routes-dialog-title">Полный маршрут</DialogTitle>
+        <DialogContent>
+          <ul className="routes-listbox" role="listbox" aria-label="Список маршрутов">
+            {routeDialogItems.map((r, i) => (
+              <li role="option" key={`${r}-${i}`}>{r}</li>
+            ))}
+          </ul>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRouteDialogOpen(false)} variant="contained">Закрыть</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={dialogOpen}
         onClose={handleClose}
         aria-labelledby="transport-report-dialog-title"
@@ -410,7 +474,7 @@ export default function ReportsTransport() {
                   className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
                   classNamePrefix="planning"
                   isMulti
-                  placeholder="Место планирования транспортировки"
+                  placeholder="Мест�� планирования транспортировки"
                   options={planningPlaces}
                   value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
                   onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value)); setTouchedPlanning(true); }}
