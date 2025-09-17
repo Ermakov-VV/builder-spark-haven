@@ -1,5 +1,4 @@
 import * as React from "react";
-import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -43,7 +42,7 @@ export default function ReportsTransport() {
   const planningPlaces = React.useMemo(
     () => [
       { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
-      { mpt: "RD01", name: "РОМ Ростов-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
+      { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
       { mpt: "NN01", name: "РОМ Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
     ],
     [],
@@ -71,7 +70,7 @@ export default function ReportsTransport() {
         mpt: "VE86",
         transportNo: "TR-2025-0001",
         driver: "Иванов И.И.",
-        route: "Ростов-на-Дону — Батайск",
+        route: "Росто��-на-Дону — Батайск",
         addressCount: 12,
         outOfOrderCount: 2,
         violationsPct: 8,
