@@ -191,6 +191,7 @@
 .transport-card:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16); }
 .transport-card-content { margin-top: 8px; overflow: auto; cursor: default; }
 .table-global-filter-row { margin: 0 0 8px; }
+.table-controls-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
 .routes-listbox { margin: 0; padding: 0 0 0 18px; }
 .driver-cell { display: flex; flex-direction: column; line-height: 1.25; }
 .driver-name { font-weight: 600; }
