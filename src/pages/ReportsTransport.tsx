@@ -435,18 +435,7 @@ export default function ReportsTransport() {
                   onTouchStart={(e) => e.stopPropagation()}
                   onDragStart={(e) => e.stopPropagation()}
                 >
-                  <div className="table-global-filter-row">
-                    <TextField
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      placeholder="Поиск по всей таблице"
-                      size="small"
-                      fullWidth
-                      variant="outlined"
-                      inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
-                    />
-                  </div>
-                  <div className="table-controls-row">
+                  <div className="table-toolbar-row">
                     <Button size="small" variant="outlined" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>Колонки</Button>
                     <Menu anchorEl={columnsMenuEl} open={Boolean(columnsMenuEl)} onClose={() => setColumnsMenuEl(null)}>
                       {columns.map((col) => {
@@ -463,6 +452,17 @@ export default function ReportsTransport() {
                         );
                       })}
                     </Menu>
+                    <div className="toolbar-search-grow">
+                      <TextField
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        placeholder="Поиск по ��сей таблице"
+                        size="small"
+                        fullWidth
+                        variant="outlined"
+                        inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
+                      />
+                    </div>
                   </div>
                   <ConfigProvider locale={ruLocale}>
                     <Table
