@@ -13,6 +13,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
+import DehazeIcon from "@mui/icons-material/Dehaze";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
 import ruRU from "rsuite/esm/locales/ru_RU";
@@ -53,7 +54,7 @@ export default function ReportsTransport() {
     () => [
       { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
       { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РОМ Ростов-на-Дону" },
-      { mpt: "NN01", name: "РОМ Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
+      { mpt: "NN01", name: "РО�� Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
     ],
     [],
   );
@@ -82,7 +83,7 @@ export default function ReportsTransport() {
       "Кузнецов К.К.",
       "Смирнов С.С.",
       "Попов П.П.",
-      "Васильев В.В.",
+      "��асильев В.В.",
     ];
     const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
     const plates = [
@@ -436,7 +437,20 @@ export default function ReportsTransport() {
                   onDragStart={(e) => e.stopPropagation()}
                 >
                   <div className="table-toolbar-row">
-                    <Button size="small" variant="outlined" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>Колонки</Button>
+                    <div className="toolbar-search-grow">
+                      <TextField
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        placeholder="Поиск по всей таблице"
+                        size="small"
+                        fullWidth
+                        variant="outlined"
+                        inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
+                      />
+                    </div>
+                    <Button aria-label="Настройка колонок" size="small" variant="outlined" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>
+                      <DehazeIcon fontSize="small" />
+                    </Button>
                     <Menu anchorEl={columnsMenuEl} open={Boolean(columnsMenuEl)} onClose={() => setColumnsMenuEl(null)}>
                       {columns.map((col) => {
                         const key = String(col.key);
@@ -452,17 +466,6 @@ export default function ReportsTransport() {
                         );
                       })}
                     </Menu>
-                    <div className="toolbar-search-grow">
-                      <TextField
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        placeholder="Поиск по ��сей таблице"
-                        size="small"
-                        fullWidth
-                        variant="outlined"
-                        inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
-                      />
-                    </div>
                   </div>
                   <ConfigProvider locale={ruLocale}>
                     <Table
