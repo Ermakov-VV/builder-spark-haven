@@ -192,6 +192,9 @@
 .transport-card-content { margin-top: 8px; overflow: auto; cursor: default; }
 .table-global-filter-row { margin: 0 0 8px; }
 .routes-listbox { margin: 0; padding: 0 0 0 18px; }
+.driver-cell { display: flex; flex-direction: column; line-height: 1.25; }
+.driver-name { font-weight: 600; }
+.driver-meta { font-size: 12px; color: rgba(0,0,0,0.6); }
 
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
