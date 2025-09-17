@@ -192,6 +192,8 @@
 .transport-card-content { margin-top: 8px; overflow: auto; cursor: default; }
 .table-global-filter-row { margin: 0 0 8px; }
 .table-controls-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+.table-toolbar-row { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.toolbar-search-grow { flex: 1 1 auto; }
 .routes-listbox { margin: 0; padding: 0 0 0 18px; }
 .driver-cell { display: flex; flex-direction: column; line-height: 1.25; }
 .driver-name { font-weight: 600; }
