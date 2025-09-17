@@ -81,7 +81,7 @@ export default function ReportsTransport() {
       "Сидоров С.С.",
       "Кузнецов К.К.",
       "Смирнов С.С.",
-      "��опов П.П.",
+      "Попов П.П.",
       "Васильев В.В.",
     ];
     const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
@@ -158,6 +158,11 @@ export default function ReportsTransport() {
   };
 
   const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
+
+  const [tablePagination, setTablePagination] = React.useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
+  React.useEffect(() => {
+    setTablePagination((p) => ({ ...p, current: 1 }));
+  }, [searchText]);
 
 
   const [routeDialogOpen, setRouteDialogOpen] = React.useState(false);
@@ -444,10 +449,11 @@ export default function ReportsTransport() {
                       dataSource={filteredData}
                       columns={displayedColumns}
                       size="middle"
-                      pagination={{ pageSize: 10, showSizeChanger: true }}
+                      pagination={{ current: tablePagination.current, pageSize: tablePagination.pageSize, showSizeChanger: true, pageSizeOptions: ["10", "20", "50", "100"] }}
                       rowKey="key"
                       sticky
                       scroll={{ y: 420 }}
+                      onChange={(pag) => setTablePagination({ current: pag.current || 1, pageSize: pag.pageSize || 10 })}
                     />
                   </ConfigProvider>
                 </div>
