@@ -12,6 +12,7 @@ import {
   MenuItem,
   Checkbox,
   FormControlLabel,
+  LinearProgress,
 } from "@mui/material";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
@@ -114,7 +115,7 @@ export default function ReportsTransport() {
     let cur = mStart.startOf("day");
     while (cur.isBefore(mEnd) || cur.isSame(mEnd)) {
       const dayIdx = cur.date();
-      const count = (dayIdx % 3) + 1; // 1..4 перевозок в день, детерминированно
+      const count = (dayIdx % 3) + 1; // 1..4 пе��евозок в день, детерминированно
       for (let c = 0; c < count; c++) {
         const dep = cur.hour(8 + (c * 3) % 10).minute((c * 17) % 60).second(0).millisecond(0);
         const durationHours = 4 + ((dayIdx + c) % 7);
@@ -224,6 +225,16 @@ export default function ReportsTransport() {
     const maxVal = Math.max(0, ...(t.length ? t : [0]), ...(v.length ? v : [0]));
     return Math.max(1, maxVal);
   }, [dateChart]);
+
+  const totals = React.useMemo(() => {
+    const total = tableData.length;
+    let withViol = 0;
+    tableData.forEach((r) => { if ((r.violationsPct || 0) > 0) withViol++; });
+    const withoutViol = Math.max(0, total - withViol);
+    const pctWith = total > 0 ? (withViol / total) * 100 : 0;
+    const pctWithout = total > 0 ? (withoutViol / total) * 100 : 0;
+    return { total, withViolations: withViol, withoutViolations: withoutViol, pctWith, pctWithout };
+  }, [tableData]);
 
   const apexSeries = React.useMemo(() => (
     [
@@ -499,7 +510,7 @@ export default function ReportsTransport() {
                 else cardRefs.current.delete(card.id);
               }}
             >
-              {card.id !== "card5" && <div className="transport-card-title">{card.title}</div>}
+              {card.id !== "card5" && card.id !== "card1" && <div className="transport-card-title">{card.title}</div>}
               {card.id === "card1" && (
                 <div
                   className="transport-card-content stat-summary-block"
@@ -509,6 +520,22 @@ export default function ReportsTransport() {
                 >
                   <div className="stat-summary-value" aria-label="Общее количество транспортировок значение">1300</div>
                   <div className="stat-summary-label" aria-label="Общее количество ��ранспортировок подпись">Общее количество транспортировок</div>
+                  <div className="progress-summary">
+                    <div className="progress-row">
+                      <div className="progress-meta">
+                        <span className="progress-label">Без нарушений</span>
+                        <span className="progress-count" aria-label="Количество без нарушений">{totals.withoutViolations}</span>
+                      </div>
+                      <LinearProgress variant="determinate" value={totals.pctWithout} color="primary" className="progress-bar ok" />
+                    </div>
+                    <div className="progress-row">
+                      <div className="progress-meta">
+                        <span className="progress-label">С нарушениями</span>
+                        <span className="progress-count" aria-label="Количество с нарушениями">{totals.withViolations}</span>
+                      </div>
+                      <LinearProgress variant="determinate" value={totals.pctWith} color="secondary" className="progress-bar warn" />
+                    </div>
+                  </div>
                 </div>
               )}
               {card.id === "card4" && (
@@ -611,7 +638,7 @@ export default function ReportsTransport() {
           <CustomProvider locale={ruRU}>
             <div className="report-params-group">
               <div className="report-date-range-row">
-                <span className="report-date-range-label">Период</span>
+                <span className="report-date-range-label">Перио��</span>
                 <DateRangePicker
                   value={dateRange}
                   onChange={(value) => { setDateRange((value || [null, null]) as [Date | null, Date | null]); setTouchedDate(true); }}

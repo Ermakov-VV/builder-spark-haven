@@ -207,6 +207,14 @@
 .driver-meta { font-size: 12px; color: rgba(0,0,0,0.6); }
 .columns-menu-button { color: #b0b0b0; min-width: 0; padding: 4px; }
 
+/* Progress summary styles for transport report */
+.progress-summary { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.progress-row { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.progress-meta { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; opacity: 0.9; }
+.progress-label { font-weight: 600; }
+.progress-count { font-weight: 700; }
+.progress-bar { width: 100%; height: 8px; border-radius: 8px; }
+
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }
 /* Background silhouettes on Home (disabled for solid color) */
