@@ -4,15 +4,14 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Button,
   TextField,
+  InputAdornment,
   Menu,
   MenuItem,
   Checkbox,
   FormControlLabel,
-  LinearProgress,
 } from "@mui/material";
 import { DateRangePicker, CustomProvider } from "rsuite";
 import Select, { components, MenuListProps, OptionProps, MultiValue } from "react-select";
@@ -25,6 +24,27 @@ import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import ruLocale from "antd/locale/ru_RU";
 import ApexChart from "react-apexcharts";
+import { PieChart } from "@mui/x-charts";
+
+type SVRPRoute = { RouteId: string; RouteName: string };
+
+type SVRPItem = {
+  TransportationId: string;
+  PlanningPoint: string;
+  PlanningPointName: string;
+  DriverId: string;
+  DriverName: string;
+  CarBrand: string;
+  CarNumber: string;
+  AddressPointCount: number;
+  FactYandexPointCount: number;
+  FactETPPointCount: number;
+  FailedPointCount: number;
+  PlanDepartureTime: string; // \/Date(1735365600000)\/
+  SVRPRouteData: SVRPRoute[];
+};
+
+type PlanningOption = { mpt: string; name: string; value: string; label: string };
 
 type TransportRow = {
   key: string;
@@ -35,15 +55,27 @@ type TransportRow = {
   carPlate: string;
   route: string | string[];
   addressCount: number;
+  etpPointsCount: number;
+  ymPointsCount: number;
   outOfOrderCount: number;
-  violationsPct: number;
-  planDeparture: string; // ISO
-  planFinish: string; // ISO
+  hasViolations: boolean;
+  planDepartureISO: string; // ISO string
+  raw: SVRPItem;
 };
+
+function parseDotNetDate(str: string): Date | null {
+  // Expect \/Date(1735365600000)\/
+  const m = /Date\((\d+)\)/.exec(str.replace(/\\\//g, ""));
+  if (!m) return null;
+  const ms = Number(m[1]);
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms);
+}
 
 export default function ReportsTransport() {
   dayjs.locale("ru");
   const navigate = useNavigate();
+
   const [dialogOpen, setDialogOpen] = React.useState(true);
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(() => {
     const end = new Date();
@@ -51,14 +83,9 @@ export default function ReportsTransport() {
     start.setDate(end.getDate() - 7);
     return [start, end];
   });
-  const planningPlaces = React.useMemo(
-    () => [
-      { mpt: "VE86", name: "СК86 EWM", value: "VE86", label: "VE86 — СК86 EWM" },
-      { mpt: "RD01", name: "РОМ Росто��-на-Дону", value: "RD01", label: "RD01 — РО�� Ростов-на-Дону" },
-      { mpt: "NN01", name: "РОМ Н.Новгород", value: "NN01", label: "NN01 — РОМ Н.Новгород" },
-    ],
-    [],
-  );
+
+  const [data, setData] = React.useState<SVRPItem[]>([]);
+  const [planningOptions, setPlanningOptions] = React.useState<PlanningOption[]>([]);
   const [selectedPlanning, setSelectedPlanning] = React.useState<string[]>([]);
   const [touchedDate, setTouchedDate] = React.useState(false);
   const [touchedPlanning, setTouchedPlanning] = React.useState(false);
@@ -67,81 +94,89 @@ export default function ReportsTransport() {
   const isFormValid = isDateValid && isPlanningValid;
   const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
+  // Load SVRP data from static asset (fallback to in-bundle JSON)
+  React.useEffect(() => {
+    try {
+      // Try to read from bundled JSON in src/assets
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const bundled = require('../assets/svrp-transport.json') as any;
+      const arr: SVRPItem[] = Array.isArray(bundled?.SVRPFactTransportation) ? bundled.SVRPFactTransportation : [];
+      setData(arr);
+      const map = new Map<string, string>();
+      arr.forEach((it) => { if (!map.has(it.PlanningPoint)) map.set(it.PlanningPoint, it.PlanningPointName); });
+      const opts: PlanningOption[] = Array.from(map.entries()).map(([code, name]) => ({ mpt: code, name, value: code, label: `${code} — ${name}` }));
+      setPlanningOptions(opts);
+      if (selectedPlanning.length === 0 && opts.length > 0) {
+        setSelectedPlanning(opts.map((o) => o.value));
+      }
+    } catch (err) {
+      // As a secondary attempt, try fetching from public folder
+      fetch('/data/svrp-transport.json')
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((j) => {
+          const arr: SVRPItem[] = Array.isArray(j?.SVRPFactTransportation) ? j.SVRPFactTransportation : [];
+          setData(arr);
+          const map = new Map<string, string>();
+          arr.forEach((it) => { if (!map.has(it.PlanningPoint)) map.set(it.PlanningPoint, it.PlanningPointName); });
+          const opts: PlanningOption[] = Array.from(map.entries()).map(([code, name]) => ({ mpt: code, name, value: code, label: `${code} — ${name}` }));
+          setPlanningOptions(opts);
+          if (selectedPlanning.length === 0 && opts.length > 0) {
+            setSelectedPlanning(opts.map((o) => o.value));
+          }
+        })
+        .catch((e) => {
+          console.error('Failed to load SVRP data', e);
+          setData([]);
+          setPlanningOptions([]);
+        });
+    }
+  }, []);
+
   const [cards, setCards] = React.useState([
     { id: "card1", title: "Карточка 1" },
     { id: "card2", title: "Карточка 2" },
-    { id: "card3", title: "Карточк�� 3" },
     { id: "card4", title: "Количество транспортировок по дням" },
     { id: "card5", title: "Карточка 5" },
   ]);
 
   const tableData: TransportRow[] = React.useMemo(() => {
-    const mpts = ["VE86", "RD01", "NN01", "MSK1", "SPB1"];
-    const drivers = [
-      "Иван��в И.И.",
-      "Петров П.П.",
-      "Сидоров С.С.",
-      "Кузнецов К.К.",
-      "Смирнов С.С.",
-      "Попов П.П.",
-      "Васильев В.В.",
-    ];
-    const brands = ["ГАЗель", "КАМАЗ", "MAN", "Scania", "Volvo", "Hyundai", "Isuzu"];
-    const plates = [
-      "А123ВС 161",
-      "В456ЕЕ 52",
-      "К789МН 34",
-      "О321ОР 77",
-      "Р654АК 78",
-      "Н987ТТ 16",
-      "Т246ХХ 66",
-    ];
-    const routesPool = [
-      "Ростов-на-Дону — Батайск",
-      "Н.Новгород — Дзержинск",
-      "Ростов-на-Дону ��� Азов",
-      "Москва — Химки",
-      "Санкт-Петербург — Пушкин",
-      "Казань — Зеленодольск",
-      "Екатеринбург — Березовский",
-    ];
-
-    const monthRef = dateRange?.[0] ? dayjs(dateRange[0]) : dayjs();
-    const mStart = monthRef.startOf("month");
-    const mEnd = monthRef.endOf("month");
-
-    const rows: TransportRow[] = [];
-    let keySeq = 1;
-    let cur = mStart.startOf("day");
-    while (cur.isBefore(mEnd) || cur.isSame(mEnd)) {
-      const dayIdx = cur.date();
-      const count = (dayIdx % 3) + 1; // 1..4 пе��евозок в день, детерминированно
-      for (let c = 0; c < count; c++) {
-        const dep = cur.hour(8 + (c * 3) % 10).minute((c * 17) % 60).second(0).millisecond(0);
-        const durationHours = 4 + ((dayIdx + c) % 7);
-        const finish = dep.add(durationHours, "hour").add(((dayIdx + c) % 3) * 10, "minute");
-        const multCount = (dayIdx + c) % 3 === 0 ? 3 : (dayIdx + c) % 3 === 1 ? 1 : 2;
-        const routeList = Array.from({ length: multCount }, (_, k) => routesPool[(dayIdx + c + k) % routesPool.length]);
-        rows.push({
-          key: String(keySeq++),
-          mpt: mpts[(dayIdx + c) % mpts.length],
-          transportNo: `TR-${monthRef.format("YYYYMM")}-${String(keySeq).padStart(4, "0")}`,
-          driver: drivers[(dayIdx + c) % drivers.length],
-          carBrand: brands[(dayIdx + c) % brands.length],
-          carPlate: plates[(dayIdx + c) % plates.length],
-          route: multCount === 1 ? routeList[0] : routeList,
-          addressCount: 8 + ((dayIdx + c) % 12),
-          outOfOrderCount: (dayIdx + c) % 4,
-          violationsPct: ((dayIdx + c) * 3) % 21,
-          planDeparture: dep.toISOString(),
-          planFinish: finish.toISOString(),
-        } as TransportRow);
-      }
-      cur = cur.add(1, "day");
-    }
-    return rows;
-  }, [dateRange]);
-
+    if (!isDateValid) return [];
+    const start = dateRange[0] ? dayjs(dateRange[0]).startOf("day") : null;
+    const end = dateRange[1] ? dayjs(dateRange[1]).endOf("day") : null;
+    const filtered = data.filter((it) => {
+      if (selectedPlanning.length && !selectedPlanning.includes(it.PlanningPoint)) return false;
+      const d = parseDotNetDate(it.PlanDepartureTime);
+      if (!d) return false;
+      const dj = dayjs(d);
+      if (start && dj.isBefore(start)) return false;
+      if (end && dj.isAfter(end)) return false;
+      return true;
+    });
+    return filtered.map((it) => {
+      const d = parseDotNetDate(it.PlanDepartureTime) || new Date();
+      const routes = Array.isArray(it.SVRPRouteData) ? it.SVRPRouteData.map((r) => r.RouteName) : [];
+      const hasViol = (it.FactYandexPointCount > 0) || (it.FactETPPointCount > 0) || (it.FailedPointCount > 0);
+      return {
+        key: it.TransportationId,
+        mpt: it.PlanningPoint,
+        transportNo: it.TransportationId,
+        driver: it.DriverName,
+        carBrand: it.CarBrand,
+        carPlate: it.CarNumber,
+        route: routes.length <= 1 ? (routes[0] || "") : routes,
+        addressCount: it.AddressPointCount,
+        etpPointsCount: it.FactETPPointCount,
+        ymPointsCount: it.FactYandexPointCount,
+        outOfOrderCount: it.FailedPointCount,
+        hasViolations: hasViol,
+        planDepartureISO: d.toISOString(),
+        raw: it,
+      } as TransportRow;
+    });
+  }, [data, dateRange, selectedPlanning, isDateValid]);
 
   const [searchText, setSearchText] = React.useState("");
 
@@ -160,33 +195,21 @@ export default function ReportsTransport() {
       routeList.join(" "),
       r.addressCount,
       r.outOfOrderCount,
-      `${r.violationsPct}%`,
-      dayjs(r.planDeparture).format("DD.MM.YYYY HH:mm"),
-      dayjs(r.planDeparture).toISOString(),
-      dayjs(r.planFinish).format("DD.MM.YYYY HH:mm"),
-      dayjs(r.planFinish).toISOString(),
+      dayjs(r.planDepartureISO).format("DD.MM.YYYY HH:mm"),
+      r.planDepartureISO,
     ]
       .map(normalized)
       .join(" ");
-    return hay.includes(needle) || hay.indexOf(needle) !== -1;
+    return hay.includes(needle);
   };
 
   const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
 
   const dateChart = React.useMemo(() => {
-    // One month window; prefer month of selected start date, else month of earliest data, else current month
-    const startSel = dateRange?.[0] ? dayjs(dateRange[0]) : null;
-    let monthRef: dayjs.Dayjs | null = startSel;
-    if (!monthRef) {
-      let minD: dayjs.Dayjs | null = null;
-      tableData.forEach((r) => {
-        const d = dayjs(r.planDeparture);
-        if (!minD || d.isBefore(minD)) minD = d;
-      });
-      monthRef = minD || dayjs();
-    }
-    const mStart = monthRef.startOf('month');
-    const mEnd = monthRef.endOf('month');
+    if (!isDateValid) return { labels: [], totals: [], violations: [] };
+    const startSel = dateRange?.[0] ? dayjs(dateRange[0]) : dayjs();
+    const mStart = startSel.startOf('month');
+    const mEnd = startSel.endOf('month');
 
     const labelsAll: string[] = [];
     const keysAll: string[] = [];
@@ -202,13 +225,12 @@ export default function ReportsTransport() {
     const violMap = new Map<string, number>();
     keysAll.forEach((k) => { totalsMap.set(k, 0); violMap.set(k, 0); });
     tableData.forEach((r) => {
-      const k = dayjs(r.planDeparture).format('YYYY-MM-DD');
+      const k = dayjs(r.planDepartureISO).format('YYYY-MM-DD');
       if (!totalsMap.has(k)) return;
       totalsMap.set(k, (totalsMap.get(k) || 0) + 1);
-      if ((r.violationsPct ?? 0) > 0) violMap.set(k, (violMap.get(k) || 0) + 1);
+      if (r.hasViolations) violMap.set(k, (violMap.get(k) || 0) + 1);
     });
 
-    // Drop days without transports (no empty values)
     const rows = keysAll.map((k, i) => ({ label: labelsAll[i], t: totalsMap.get(k) || 0, v: violMap.get(k) || 0 }))
       .filter((r) => r.t > 0);
 
@@ -217,7 +239,7 @@ export default function ReportsTransport() {
       totals: rows.map((r) => r.t),
       violations: rows.map((r) => r.v),
     };
-  }, [tableData, dateRange]);
+  }, [tableData, dateRange, isDateValid]);
 
   const yMax = React.useMemo(() => {
     const t = dateChart.totals || [];
@@ -229,11 +251,17 @@ export default function ReportsTransport() {
   const totals = React.useMemo(() => {
     const total = tableData.length;
     let withViol = 0;
-    tableData.forEach((r) => { if ((r.violationsPct || 0) > 0) withViol++; });
+    tableData.forEach((r) => { if (r.hasViolations) withViol++; });
     const withoutViol = Math.max(0, total - withViol);
     const pctWith = total > 0 ? (withViol / total) * 100 : 0;
     const pctWithout = total > 0 ? (withoutViol / total) * 100 : 0;
     return { total, withViolations: withViol, withoutViolations: withoutViol, pctWith, pctWithout };
+  }, [tableData]);
+
+  const sums = React.useMemo(() => {
+    let etp = 0, ym = 0, failed = 0;
+    tableData.forEach((r) => { etp += r.etpPointsCount; ym += r.ymPointsCount; failed += r.outOfOrderCount; });
+    return { etp, ym, failed };
   }, [tableData]);
 
   const apexSeries = React.useMemo(() => (
@@ -246,7 +274,7 @@ export default function ReportsTransport() {
   const apexOptions = React.useMemo(() => ({
     chart: { type: 'bar', toolbar: { show: false } },
     plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
-    colors: ['#008ffb', '#feb019'],
+    colors: ['#008ffb', '#9c27b0'],
     xaxis: {
       categories: dateChart.labels || [],
       tickPlacement: 'between',
@@ -266,10 +294,43 @@ export default function ReportsTransport() {
   }), [dateChart, yMax]);
 
   const [tablePagination, setTablePagination] = React.useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 10 });
+
+  const pieContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const [pieSize, setPieSize] = React.useState<number>(180);
+  React.useEffect(() => {
+    const el = pieContainerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) {
+        const w = e.contentRect.width;
+        const h = e.contentRect.height;
+        const size = Math.floor(Math.max(120, Math.min(w, h) - 40));
+        setPieSize(size);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pie2ContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const [pie2Size, setPie2Size] = React.useState<number>(180);
+  React.useEffect(() => {
+    const el = pie2ContainerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) {
+        const w = e.contentRect.width;
+        const h = e.contentRect.height;
+        const size = Math.floor(Math.max(120, Math.min(w, h) - 40));
+        setPie2Size(size);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   React.useEffect(() => {
     setTablePagination((p) => ({ ...p, current: 1 }));
   }, [searchText]);
-
 
   const [routeDialogOpen, setRouteDialogOpen] = React.useState(false);
   const [routeDialogItems, setRouteDialogItems] = React.useState<string[]>([]);
@@ -313,32 +374,46 @@ export default function ReportsTransport() {
         sorter: (a: TransportRow, b: TransportRow) => {
           const a1 = Array.isArray(a.route) ? a.route[0] : a.route;
           const b1 = Array.isArray(b.route) ? b.route[0] : b.route;
-          return a1.localeCompare(b1);
+          return (a1 || "").localeCompare(b1 || "");
         },
         render: (val: string | string[]) => {
           const list = Array.isArray(val) ? val : [val];
-          if (list.length <= 1) return list[0];
-          const first = list[0];
+          const first = list[0] || '';
+          if (list.length <= 1) return (<div className="route-cell"><div className="route-main">{first}</div></div>);
           const rest = list.length - 1;
           return (
-            <span>
-              {first} {" "}
-              <Button
-                size="small"
-                variant="text"
-                onClick={(e) => { e.stopPropagation(); openRoutesDialog(list); }}
-              >
-                и ещё{rest > 1 ? ` ${rest}` : ""}
-              </Button>
-            </span>
+            <div className="route-cell">
+              <div className="route-main">{first}</div>
+              <div className="route-more">
+                <a
+                  href="#"
+                  className="route-more-link"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); openRoutesDialog(list); }}
+                >
+                  и ещё {rest}
+                </a>
+              </div>
+            </div>
           );
         },
       },
       {
-        title: "Кол-во адресов",
+        title: "Ко��-во адресов",
         dataIndex: "addressCount",
         key: "addressCount",
         sorter: (a: TransportRow, b: TransportRow) => a.addressCount - b.addressCount,
+      },
+      {
+        title: "Кол-во тчк ЭТП",
+        dataIndex: "etpPointsCount",
+        key: "etpPointsCount",
+        sorter: (a: TransportRow, b: TransportRow) => a.etpPointsCount - b.etpPointsCount,
+      },
+      {
+        title: "Кол-во тчк ЯМ",
+        dataIndex: "ymPointsCount",
+        key: "ymPointsCount",
+        sorter: (a: TransportRow, b: TransportRow) => a.ymPointsCount - b.ymPointsCount,
       },
       {
         title: "Кол-во точек не по-порядку",
@@ -347,28 +422,14 @@ export default function ReportsTransport() {
         sorter: (a: TransportRow, b: TransportRow) => a.outOfOrderCount - b.outOfOrderCount,
       },
       {
-        title: "% Нарушений",
-        dataIndex: "violationsPct",
-        key: "violationsPct",
-        sorter: (a: TransportRow, b: TransportRow) => a.violationsPct - b.violationsPct,
-        render: (v: number) => `${v}%`,
-      },
-      {
-        title: "П��ан. время выезда",
-        dataIndex: "planDeparture",
-        key: "planDeparture",
-        sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planDeparture).valueOf() - dayjs(b.planDeparture).valueOf(),
-        render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
-      },
-      {
-        title: "План. оконч. транс-ки",
-        dataIndex: "planFinish",
-        key: "planFinish",
-        sorter: (a: TransportRow, b: TransportRow) => dayjs(a.planFinish).valueOf() - dayjs(b.planFinish).valueOf(),
-        render: (v: string) => dayjs(v).format("DD.MM.YYYY HH:mm"),
+        title: "Нарушения",
+        dataIndex: "hasViolations",
+        key: "hasViolations",
+        sorter: (a: TransportRow, b: TransportRow) => Number(a.hasViolations) - Number(b.hasViolations),
+        render: (v: boolean) => (v ? "Да" : "Нет"),
       },
     ],
-    [tableData],
+    [],
   );
 
   const [columnsMenuEl, setColumnsMenuEl] = React.useState<null | HTMLElement>(null);
@@ -386,7 +447,6 @@ export default function ReportsTransport() {
   const [draggingId, setDraggingId] = React.useState<string | null>(null);
   const [overIndex, setOverIndex] = React.useState<number | null>(null);
   const cardRefs = React.useRef(new Map<string, HTMLElement>());
-
 
   const measurePositions = () => {
     const positions: Record<string, DOMRect> = {};
@@ -473,8 +533,6 @@ export default function ReportsTransport() {
     setDraggingId(null);
   };
 
-
-
   const handleApply = () => {
     setDialogOpen(false);
   };
@@ -489,108 +547,233 @@ export default function ReportsTransport() {
   };
 
   return (
-    <div className="reports-transport-page">
-      <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
+    <ConfigProvider locale={ruLocale}>
+      <div className="reports-transport-page">
+        <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
 
-      <div className="transport-grid" onDragOver={onGridDragOver} onDrop={onGridDrop}>
-        {cards.map((card, idx) => (
-          <div
-            key={card.id}
-            className={`transport-card-wrapper${card.id === "card4" ? " full-width full-rest" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${overIndex === idx ? " drag-over" : ""}`}
-            onDragOver={onCardDragOver(idx)}
-            onDrop={onCardDrop(idx)}
-          >
+        <div className="transport-grid" onDragOver={onGridDragOver} onDrop={onGridDrop}>
+          {cards.map((card, idx) => (
             <div
-              className={`transport-card${draggingId === card.id ? " is-dragging" : ""}`}
-              draggable
-              onDragStart={onDragStart(card.id)}
-              onDragEnd={onDragEnd}
-              ref={(el) => {
-                if (el) cardRefs.current.set(card.id, el);
-                else cardRefs.current.delete(card.id);
-              }}
+              key={card.id}
+              className={`transport-card-wrapper${card.id === "card4" ? " full-width full-rest" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${(card.id === "card1" || card.id === "card2") ? " taller-16" : ""}${overIndex === idx ? " drag-over" : ""}`}
+              onDragOver={onCardDragOver(idx)}
+              onDrop={onCardDrop(idx)}
             >
-              {card.id !== "card5" && card.id !== "card1" && <div className="transport-card-title">{card.title}</div>}
-              {card.id === "card1" && (
-                <div
-                  className="transport-card-content stat-summary-block"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onDragStart={(e) => e.stopPropagation()}
-                >
-                  <div className="stat-summary-value" aria-label="Общее количество транспортировок значение">1300</div>
-                  <div className="stat-summary-label" aria-label="Общее количество ��ранспортировок подпись">Общее количество транспортировок</div>
-                  <div className="progress-summary">
-                    <div className="progress-row">
-                      <div className="progress-meta">
-                        <span className="progress-label">Без нарушений</span>
-                        <span className="progress-count" aria-label="Количество без нарушений">{totals.withoutViolations}</span>
+              <div
+                className={`transport-card${draggingId === card.id ? " is-dragging" : ""}`}
+                ref={(el) => {
+                  if (el) cardRefs.current.set(card.id, el);
+                  else cardRefs.current.delete(card.id);
+                }}
+              >
+                <div className="card-drag-handle" draggable onDragStart={onDragStart(card.id)} onDragEnd={onDragEnd} aria-label="Перетащить карточку">
+                  <svg width="24" height="12" viewBox="0 0 24 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="4" cy="3" r="1.5"/>
+                    <circle cx="12" cy="3" r="1.5"/>
+                    <circle cx="20" cy="3" r="1.5"/>
+                    <circle cx="4" cy="9" r="1.5"/>
+                    <circle cx="12" cy="9" r="1.5"/>
+                    <circle cx="20" cy="9" r="1.5"/>
+                  </svg>
+                </div>
+                {card.id !== "card5" && card.id !== "card1" && card.id !== "card2" && <div className="transport-card-title">{card.title}</div>}
+                {card.id === "card2" && (
+                  <div
+                    className="transport-card-content card1-analytics-grid card2-analytics-grid"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onDragStart={(e) => e.stopPropagation()}
+                  >
+                    <div className="card1-summary-left">
+                      <div className="kpi-inline">
+                        <div className="kpi-row">
+                          <div className="kpi-icon-left" aria-hidden>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" opacity="0.9"/>
+                              <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <div className="kpi-number" aria-label="Точек с опозданием ЭТП значение">{sums.etp}</div>
+                        </div>
+                        <div className="kpi-caption">Точек с опозданием ЭТП</div>
                       </div>
-                      <LinearProgress variant="determinate" value={totals.pctWithout} color="primary" className="progress-bar ok" />
+                      <div className="kpi-inline">
+                        <div className="kpi-row">
+                          <div className="kpi-icon-left" aria-hidden>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" opacity="0.9"/>
+                              <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <div className="kpi-number" aria-label="Точек с опозданием ЯМ значение">{sums.ym}</div>
+                        </div>
+                        <div className="kpi-caption">Точек с опозданием ЯМ</div>
+                      </div>
+                      <div className="kpi-inline">
+                        <div className="kpi-row">
+                          <div className="kpi-icon-left" aria-hidden>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 2c3.866 0 7 3.134 7 7 0 5.25-7 13-7 13S5 14.25 5 9c0-3.866 3.134-7 7-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                              <circle cx="12" cy="9" r="2" fill="currentColor"/>
+                            </svg>
+                          </div>
+                          <div className="kpi-number" aria-label="Точек выполнили не по порядку значение">{sums.failed}</div>
+                        </div>
+                        <div className="kpi-caption">Точек выполнили не по порядку</div>
+                      </div>
                     </div>
-                    <div className="progress-row">
-                      <div className="progress-meta">
-                        <span className="progress-label">С нарушениями</span>
-                        <span className="progress-count" aria-label="Количество с нарушениями">{totals.withViolations}</span>
+                    <div className="card1-summary-right">
+                      <div className="chart-fill" ref={pie2ContainerRef}>
+                        <PieChart
+                          width={pie2Size}
+                          height={pie2Size}
+                          series={[{
+                            innerRadius: Math.max(32, Math.round(pie2Size * 0.30)),
+                            data: [
+                              { id: 0, value: sums.etp, label: 'ЭТП', color: '#ff9800' },
+                              { id: 1, value: sums.ym, label: 'ЯМ', color: '#f44336' },
+                              { id: 2, value: sums.failed, label: 'Не по порядку', color: '#2196f3' },
+                            ],
+                            valueFormatter: (item: any) => `${item.value}`,
+                          }]}
+                          slotProps={{ legend: { hidden: true } }}
+                        />
+                        <div className="donut-legend legend-inline" aria-label="Легенда диаграммы">
+                          <div className="legend-item"><span className="legend-swatch legend-etp" aria-hidden></span><span className="legend-label">ЭТП</span></div>
+                          <div className="legend-item"><span className="legend-swatch legend-ym" aria-hidden></span><span className="legend-label">ЯМ</span></div>
+                          <div className="legend-item"><span className="legend-swatch legend-order" aria-hidden></span><span className="legend-label">Не по поряд��у</span></div>
+                        </div>
                       </div>
-                      <LinearProgress variant="determinate" value={totals.pctWith} color="secondary" className="progress-bar warn" />
                     </div>
                   </div>
-                </div>
-              )}
-              {card.id === "card4" && (
-                <div className="transport-card-content" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onDragStart={(e) => e.stopPropagation()}>
-                  <ApexChart
-                    type="bar"
-                    height={450}
-                    options={apexOptions as any}
-                    series={apexSeries as any}
-                  />
-                </div>
-              )}
-              {card.id === "card5" && (
-                <div
-                  className="transport-card-content"
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onDragStart={(e) => e.stopPropagation()}
-                >
-                  <div className="table-toolbar-row">
-                    <div className="toolbar-search-grow">
-                      <TextField
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        placeholder="Поиск по всей таблице"
-                        size="small"
-                        fullWidth
-                        variant="outlined"
-                        inputProps={{ 'aria-label': 'Поиск по всей таблице' }}
-                      />
+                )}
+                {card.id === "card1" && (
+                  <div
+                    className="transport-card-content card1-analytics-grid"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onDragStart={(e) => e.stopPropagation()}
+                  >
+                    <div className="card1-summary-left">
+                      <div className="card1-total">
+                        <div className="stat-summary-value" aria-label="Общ��е количество транспортировок значение">{totals.total}</div>
+                        <div className="stat-summary-label" aria-label="Общее количество транспортировок подпись">Общее количество транспортировок</div>
+                      </div>
+                      <div className="kpi-inline">
+                        <div className="kpi-row">
+                          <div className="kpi-icon-left" aria-hidden>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" opacity="0.9"/>
+                              <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <div className="kpi-number" aria-label="Без нарушений значени��">{totals.withoutViolations}</div>
+                        </div>
+                        <div className="kpi-caption">Без нарушений</div>
+                      </div>
+                      <div className="kpi-inline">
+                        <div className="kpi-row">
+                          <div className="kpi-icon-left" aria-hidden>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" opacity="0.9"/>
+                              <path d="M12 8v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              <circle cx="12" cy="16" r="1.2" fill="currentColor"/>
+                            </svg>
+                          </div>
+                          <div className="kpi-number" aria-label="С нарушени��ми значение">{totals.withViolations}</div>
+                        </div>
+                        <div className="kpi-caption">С нарушениями</div>
+                      </div>
                     </div>
-                    <Button className="columns-menu-button" aria-label="Настройка колонок" size="small" variant="text" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                        <rect x="3" y="6" width="18" height="2" fill="currentColor" />
-                        <rect x="3" y="11" width="18" height="2" fill="currentColor" />
-                        <rect x="3" y="16" width="18" height="2" fill="currentColor" />
-                      </svg>
-                    </Button>
-                    <Menu anchorEl={columnsMenuEl} open={Boolean(columnsMenuEl)} onClose={() => setColumnsMenuEl(null)}>
-                      {columns.map((col) => {
-                        const key = String(col.key);
-                        const label = typeof col.title === 'string' ? col.title : key;
-                        const checked = visibleCols[key] !== false;
-                        return (
-                          <MenuItem key={key} dense onClick={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))}>
-                            <FormControlLabel
-                              control={<Checkbox size="small" checked={checked} onChange={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))} />}
-                              label={label}
-                            />
-                          </MenuItem>
-                        );
-                      })}
-                    </Menu>
+                    <div className="card1-summary-right">
+                      <div className="chart-fill" ref={pieContainerRef}>
+                        <PieChart
+                          width={pieSize}
+                          height={pieSize}
+                          series={[{
+                            innerRadius: Math.max(32, Math.round(pieSize * 0.30)),
+                            data: [
+                              { id: 0, value: totals.withoutViolations, label: 'Без нарушений', color: '#008ffb' },
+                              { id: 1, value: totals.withViolations, label: 'С нарушениями', color: '#9c27b0' },
+                            ],
+                            valueFormatter: (item: any) => `${Math.round((item.value / Math.max(1, totals.total)) * 100)}%`,
+                          }]}
+                          slotProps={{ legend: { hidden: true } }}
+                        />
+                        <div className="donut-legend" aria-label="Легенда диаграммы">
+                          <div className="legend-item">
+                            <span className="legend-swatch legend-ok" aria-hidden></span>
+                            <span className="legend-label">Без нарушений</span>
+                          </div>
+                          <div className="legend-item">
+                            <span className="legend-swatch legend-bad" aria-hidden></span>
+                            <span className="legend-label">С нарушениями</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <ConfigProvider locale={ruLocale}>
+                )}
+                {card.id === "card4" && (
+                  <div className="transport-card-content" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onDragStart={(e) => e.stopPropagation()}>
+                    <ApexChart
+                      type="bar"
+                      height={450}
+                      options={apexOptions as any}
+                      series={apexSeries as any}
+                    />
+                  </div>
+                )}
+                {card.id === "card5" && (
+                  <div
+                    className="transport-card-content"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onDragStart={(e) => e.stopPropagation()}
+                  >
+                    <div className="table-toolbar-row">
+                      <div className="toolbar-search-grow">
+                        <TextField
+                          value={searchText}
+                          onChange={(e) => setSearchText(e.target.value)}
+                          placeholder="Поиск"
+                          size="small"
+                          fullWidth
+                          variant="outlined"
+                          InputProps={{ startAdornment: (
+                            <InputAdornment position="start">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
+                                <path d="M20 20l-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              </svg>
+                            </InputAdornment>
+                          ) }}
+                          inputProps={{ 'aria-label': 'Поиск' }}
+                        />
+                      </div>
+                      <Button className="columns-menu-button" aria-label="Настройка колонок" size="small" variant="text" onClick={(e) => setColumnsMenuEl(e.currentTarget)}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                          <rect x="3" y="6" width="18" height="2" fill="currentColor" />
+                          <rect x="3" y="11" width="18" height="2" fill="currentColor" />
+                          <rect x="3" y="16" width="18" height="2" fill="currentColor" />
+                        </svg>
+                      </Button>
+                      <Menu anchorEl={columnsMenuEl} open={Boolean(columnsMenuEl)} onClose={() => setColumnsMenuEl(null)}>
+                        {columns.map((col) => {
+                          const key = String(col.key);
+                          const label = typeof col.title === 'string' ? col.title : key;
+                          const checked = visibleCols[key] !== false;
+                          return (
+                            <MenuItem key={key} dense onClick={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))}>
+                              <FormControlLabel
+                                control={<Checkbox size="small" checked={checked} onChange={() => setVisibleCols((prev) => ({ ...prev, [key]: !checked }))} />}
+                                label={label}
+                              />
+                            </MenuItem>
+                          );
+                        })}
+                      </Menu>
+                    </div>
                     <Table
                       dataSource={filteredData}
                       columns={displayedColumns}
@@ -601,129 +784,129 @@ export default function ReportsTransport() {
                       scroll={{ y: 420 }}
                       onChange={(pag) => setTablePagination({ current: pag.current || 1, pageSize: pag.pageSize || 10 })}
                     />
-                  </ConfigProvider>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Dialog
+          open={routeDialogOpen}
+          onClose={() => setRouteDialogOpen(false)}
+          aria-labelledby="routes-dialog-title"
+        >
+          <DialogTitle id="routes-dialog-title">Полный маршрут</DialogTitle>
+          <DialogContent>
+            <ul className="routes-listbox" role="listbox" aria-label="Список маршрутов">
+              {routeDialogItems.map((r, i) => (
+                <li role="option" key={`${r}-${i}`}>{r}</li>
+              ))}
+            </ul>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRouteDialogOpen(false)} variant="contained">Закрыть</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={dialogOpen}
+          onClose={handleClose}
+          aria-labelledby="transport-report-dialog-title"
+          PaperProps={{ sx: { width: "auto", maxWidth: "none" } }}
+        >
+          <DialogTitle id="transport-report-dialog-title">Выберите параметры</DialogTitle>
+          <DialogContent>
+            <CustomProvider locale={ruRU}>
+              <div className="report-params-group">
+                <div className="report-date-range-row">
+                  <span className="report-date-range-label">Период</span>
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={(value) => { setDateRange((value || [null, null]) as [Date | null, Date | null]); setTouchedDate(true); }}
+                    locale={ruRU}
+                    format="dd.MM.yyyy"
+                    character=" - "
+                    placeholder="Дата начала - Дата окончания"
+                    className={`report-date-range-input${!isDateValid && touchedDate ? " is-invalid" : ""}`}
+                    container={getDialogContainer}
+                    preventOverflow
+                    placement="bottomStart"
+                  />
                 </div>
+                {!isDateValid && touchedDate && (
+                  <div className="field-error-text">Укажите период</div>
+                )}
+                <div className="planning-picker-row">
+                  <Select
+                    className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
+                    classNamePrefix="planning"
+                    isMulti
+                    placeholder="Место планирования транспортировки"
+                    options={planningOptions}
+                    value={planningOptions.filter((o) => selectedPlanning.includes(o.value))}
+                    onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => (v as any).value)); setTouchedPlanning(true); }}
+                    getOptionValue={(o) => (o as any).value}
+                    getOptionLabel={(o) => `${(o as any).mpt} — ${(o as any).name}`}
+                    formatOptionLabel={(option: any) => (
+                      <div className="planning-option">
+                        <span className="option-checkbox" aria-hidden>
+                          <input type="checkbox" checked={selectedPlanning.includes(option.value)} readOnly />
+                        </span>
+                        <span className="option-code">{option.mpt}</span>
+                        <span className="option-name">{option.name}</span>
+                      </div>
+                    )}
+                    components={{
+                      MenuList: (props: MenuListProps) => {
+                        const allValues = planningOptions.map((p) => p.value);
+                        const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
+                        const someSelected = selectedPlanning.length > 0 && !allSelected;
+                        return (
+                          <components.MenuList {...props}>
+                            <label className="planning-select-all-row">
+                              <input
+                                type="checkbox"
+                                checked={allSelected}
+                                ref={(el) => el && (el.indeterminate = someSelected)}
+                                onChange={(e) => setSelectedPlanning(e.target.checked ? allValues : [])}
+                              />
+                              <span>Выбрать все</span>
+                            </label>
+                            {props.children}
+                          </components.MenuList>
+                        );
+                      },
+                      Option: (optionProps: OptionProps<any>) => (
+                        <components.Option {...optionProps}>
+                          <div className="planning-option">
+                            <span className="option-checkbox" aria-hidden>
+                              <input type="checkbox" checked={optionProps.isSelected} readOnly />
+                            </span>
+                            <span className="option-code">{optionProps.data.mpt}</span>
+                            <span className="option-name">{optionProps.data.name}</span>
+                          </div>
+                        </components.Option>
+                      ),
+                    }}
+                    menuPortalTarget={getDialogContainer()}
+                    menuPosition="fixed"
+                    onBlur={() => setTouchedPlanning(true)}
+                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 1500 }) }}
+                  />
+                </div>
+              </div>
+              {!isPlanningValid && touchedPlanning && (
+                <div className="field-error-text">Выберите место планирования транспортировки</div>
               )}
-            </div>
-          </div>
-        ))}
+            </CustomProvider>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleExit} color="inherit">Выйти</Button>
+            <Button onClick={handleApply} variant="contained" disabled={!isFormValid}>Применить</Button>
+          </DialogActions>
+        </Dialog>
       </div>
-
-      <Dialog
-        open={routeDialogOpen}
-        onClose={() => setRouteDialogOpen(false)}
-        aria-labelledby="routes-dialog-title"
-      >
-        <DialogTitle id="routes-dialog-title">Полный маршрут</DialogTitle>
-        <DialogContent>
-          <ul className="routes-listbox" role="listbox" aria-label="Список маршрут��в">
-            {routeDialogItems.map((r, i) => (
-              <li role="option" key={`${r}-${i}`}>{r}</li>
-            ))}
-          </ul>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRouteDialogOpen(false)} variant="contained">Закрыть</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={dialogOpen}
-        onClose={handleClose}
-        aria-labelledby="transport-report-dialog-title"
-        PaperProps={{ sx: { width: "auto", maxWidth: "none" } }}
-      >
-        <DialogTitle id="transport-report-dialog-title">Выберите параметры</DialogTitle>
-        <DialogContent>
-          <CustomProvider locale={ruRU}>
-            <div className="report-params-group">
-              <div className="report-date-range-row">
-                <span className="report-date-range-label">Перио��</span>
-                <DateRangePicker
-                  value={dateRange}
-                  onChange={(value) => { setDateRange((value || [null, null]) as [Date | null, Date | null]); setTouchedDate(true); }}
-                  locale={ruRU}
-                  format="dd.MM.yyyy"
-                  character=" - "
-                  placeholder="Дата начала - Дата окончания"
-                  className={`report-date-range-input${!isDateValid && touchedDate ? " is-invalid" : ""}`}
-                  container={getDialogContainer}
-                  preventOverflow
-                  placement="bottomStart"
-                />
-              </div>
-              {!isDateValid && touchedDate && (
-                <div className="field-error-text">Укажите период</div>
-              )}
-              <div className="planning-picker-row">
-                <Select
-                  className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
-                  classNamePrefix="planning"
-                  isMulti
-                  placeholder="Место планирования транспортировки"
-                  options={planningPlaces}
-                  value={planningPlaces.filter((o) => selectedPlanning.includes(o.value))}
-                  onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => v.value)); setTouchedPlanning(true); }}
-                  getOptionValue={(o) => o.value}
-                  getOptionLabel={(o) => `${o.mpt} — ${o.name}`}
-                  formatOptionLabel={(option) => (
-                    <div className="planning-option">
-                      <span className="option-checkbox" aria-hidden>
-                        <input type="checkbox" checked={selectedPlanning.includes(option.value)} readOnly />
-                      </span>
-                      <span className="option-code">{option.mpt}</span>
-                      <span className="option-name">{option.name}</span>
-                    </div>
-                  )}
-                  components={{
-                    MenuList: (props: MenuListProps) => {
-                      const allValues = planningPlaces.map((p) => p.value);
-                      const allSelected = selectedPlanning.length === allValues.length && allValues.every((v) => selectedPlanning.includes(v));
-                      const someSelected = selectedPlanning.length > 0 && !allSelected;
-                      return (
-                        <components.MenuList {...props}>
-                          <label className="planning-select-all-row">
-                            <input
-                              type="checkbox"
-                              checked={allSelected}
-                              ref={(el) => el && (el.indeterminate = someSelected)}
-                              onChange={(e) => setSelectedPlanning(e.target.checked ? allValues : [])}
-                            />
-                            <span>��ыбрать все</span>
-                          </label>
-                          {props.children}
-                        </components.MenuList>
-                      );
-                    },
-                    Option: (optionProps: OptionProps<any>) => (
-                      <components.Option {...optionProps}>
-                        <div className="planning-option">
-                          <span className="option-checkbox" aria-hidden>
-                            <input type="checkbox" checked={optionProps.isSelected} readOnly />
-                          </span>
-                          <span className="option-code">{optionProps.data.mpt}</span>
-                          <span className="option-name">{optionProps.data.name}</span>
-                        </div>
-                      </components.Option>
-                    ),
-                  }}
-                  menuPortalTarget={getDialogContainer()}
-                  menuPosition="fixed"
-                  onBlur={() => setTouchedPlanning(true)}
-                  styles={{ menuPortal: (base) => ({ ...base, zIndex: 1500 }) }}
-                />
-              </div>
-            </div>
-            {!isPlanningValid && touchedPlanning && (
-              <div className="field-error-text">Выберите мес��о планирования транспортировки</div>
-            )}
-          </CustomProvider>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleExit} color="inherit">Выйти</Button>
-          <Button onClick={handleApply} variant="contained" disabled={!isFormValid}>Применить</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+    </ConfigProvider>
   );
 }

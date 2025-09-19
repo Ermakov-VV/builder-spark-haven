@@ -179,15 +179,16 @@
   background-size: 100% 100%;
 }
 
-.transport-grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.transport-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; margin: 12px 0 16px; }
 .transport-card-wrapper { height: calc((100vh / var(--grid-rows)) * 15); border-radius: 16px; }
 .transport-card-wrapper.full-width { grid-column: 1 / -1; }
+.transport-card-wrapper.taller-16 { height: calc((100vh / var(--grid-rows)) * 16); }
 .transport-card-wrapper.fixed-250 { height: 250px; }
 .transport-card-wrapper.fixed-500 { height: 500px; }
 .transport-card-wrapper.full-rest { height: auto; }
 .transport-card-wrapper.full-rest .transport-card { height: auto; }
 .transport-card-wrapper.drag-over { outline: 2px dashed #1976d2; outline-offset: -4px; }
-.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; cursor: move; user-select: none; will-change: transform; transition: transform 250ms ease, box-shadow 150ms ease; }
+.transport-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); height: 100%; padding: 12px; box-sizing: border-box; user-select: none; will-change: transform; transition: transform 250ms ease, box-shadow 150ms ease; display: flex; flex-direction: column; }
 .transport-card.is-dragging { transform: scale(1.02); box-shadow: 0 14px 30px rgba(0,0,0,0.2); }
 
 /* Summary stat block styles */
@@ -196,7 +197,10 @@
 .stat-summary-label { font-size: 12px; opacity: 0.75; text-align: center; }
 .transport-card-title { font-weight: 600; opacity: 0.9; }
 .transport-card:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16); }
-.transport-card-content { margin-top: 8px; overflow: auto; cursor: default; }
+.transport-card-content { margin-top: 8px; overflow: auto; cursor: default; flex: 1; min-height: 0; }
+.card-drag-handle { display: flex; align-items: center; justify-content: center; height: 12px; margin: 2px auto; color: #9e9e9e; cursor: grab; }
+.transport-card.is-dragging .card-drag-handle { cursor: grabbing; }
+.card-drag-handle svg { width: 16px; height: 8px; opacity: 0.9; }
 .table-global-filter-row { margin: 0 0 8px; }
 .table-controls-row { display: flex; justify-content: flex-end; margin: 0 0 8px; }
 .table-toolbar-row { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
@@ -214,6 +218,52 @@
 .progress-label { font-weight: 600; }
 .progress-count { font-weight: 700; }
 .progress-bar { width: 100%; height: 8px; border-radius: 8px; }
+
+/* Violations card (Card 2) summary and KPIs */
+.violations-summary { display: grid; grid-template-rows: auto 1fr; gap: 12px; }
+.violations-summary-header { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.violations-kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.violations-kpi { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 4px; }
+.violations-kpi-value { font-weight: 800; font-size: 24px; line-height: 1; }
+.violations-kpi-icon svg { width: 20px; height: 20px; opacity: 0.9; }
+.violations-kpi-caption { font-size: 12px; opacity: 0.75; text-align: center; }
+
+/* Card 1 custom analytics layout */
+.card1-analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; height: 100%; align-items: stretch; grid-auto-rows: 1fr; min-height: 0; }
+.card1-summary-left { display: grid; grid-template-rows: auto auto auto; gap: 12px; align-content: stretch; justify-items: center; height: 100%; align-self: stretch; min-height: 0; }
+.card1-total { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.card1-total .stat-summary-value { font-size: 32px; line-height: 1; font-weight: 800; }
+.card1-total .stat-summary-label { font-size: 12px; opacity: 0.75; }
+.kpi-inline { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.kpi-row { display: inline-flex; align-items: center; gap: 4px; }
+.card1-summary-left .kpi-inline:first-of-type .kpi-row { gap: 4px; }
+.kpi-text { display: flex; flex-direction: column; }
+.kpi-number { font-weight: 800; font-size: 20px; line-height: 1; }
+.kpi-caption { font-size: 12px; opacity: 0.75; text-align: center; }
+.kpi-icon-left svg { width: 20px; height: 20px; opacity: 0.9; }
+.kpi-icon-left { margin-right: 0; display: inline-flex; }
+/* Color KPI icons to match chart colors */
+.card1-summary-left > .kpi-inline:nth-child(2) .kpi-icon-left { color: #008ffb; }
+.card1-summary-left > .kpi-inline:nth-child(3) .kpi-icon-left { color: #9c27b0; }
+.card1-summary-right { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; align-self: stretch; min-height: 0; }
+.chart-fill { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.chart-fill .apexcharts-canvas, .chart-fill .apexcharts-svg { width: 100% !important; height: 100% !important; }
+.donut-svg { width: 100%; height: 100%; display: block; }
+.donut-legend { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.legend-inline { flex-wrap: nowrap; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.legend-swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend-ok { background: #008ffb; }
+.legend-bad { background: #9c27b0; }
+.legend-etp { background: #ff9800; }
+.legend-ym { background: #f44336; }
+.legend-order { background: #2196f3; }
+/* Restore captions on left KPIs */
+.card1-summary-left .kpi-caption { display: block; }
+/* Card 2 KPI icon colors to match donut */
+.card2-analytics-grid .card1-summary-left > .kpi-inline:nth-child(1) .kpi-icon-left { color: #ff9800; }
+.card2-analytics-grid .card1-summary-left > .kpi-inline:nth-child(2) .kpi-icon-left { color: #f44336; }
+.card2-analytics-grid .card1-summary-left > .kpi-inline:nth-child(3) .kpi-icon-left { color: #2196f3; }
 
 /* Home sections based on first-level menu (excluding Главная) */
 .home-page { display: block; background: #ebebec; min-height: 100%; position: relative; }

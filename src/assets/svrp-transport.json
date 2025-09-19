@@ -1,0 +1,158 @@
+{
+  "SVRPFactTransportation": [
+    {
+      "TransportationId": "29317459",
+      "PlanningPoint": "PE89",
+      "PlanningPointName": "РЦД Белгород",
+      "DriverId": "321992",
+      "DriverName": "Леоньтьев М. А.",
+      "CarBrand": "КамАЗ",
+      "CarNumber": "B456EE 52",
+      "AddressPointCount": 28,
+      "FactYandexPointCount": 14,
+      "FactETPPointCount": 5,
+      "FailedPointCount": 24,
+      "PlanDepartureTime": "/Date(1735365600000)/",
+      "SVRPRouteData": [
+        { "RouteId": "BG0013", "RouteName": "Блг-Белгород(Строитель)" }
+      ]
+    },
+    {
+      "TransportationId": "29317600",
+      "PlanningPoint": "RD01",
+      "PlanningPointName": "РЦД Ростов-на-Дону",
+      "DriverId": "321354",
+      "DriverName": "Марухин Л.С.",
+      "CarBrand": "Volvo",
+      "CarNumber": "B777EE 98",
+      "AddressPointCount": 45,
+      "FactYandexPointCount": 12,
+      "FactETPPointCount": 4,
+      "FailedPointCount": 21,
+      "PlanDepartureTime": "/Date(1735452000000)/",
+      "SVRPRouteData": [
+        { "RouteId": "RD0015", "RouteName": "Ростов-на-Дону-Минск(СК51)" }
+      ]
+    },
+    {
+      "TransportationId": "29317601",
+      "PlanningPoint": "RD01",
+      "PlanningPointName": "РЦД Ростов-на-Дону",
+      "DriverId": "321355",
+      "DriverName": "Иванов И.И.",
+      "CarBrand": "Scania",
+      "CarNumber": "А123ВС 161",
+      "AddressPointCount": 12,
+      "FactYandexPointCount": 0,
+      "FactETPPointCount": 0,
+      "FailedPointCount": 0,
+      "PlanDepartureTime": "/Date(1735538400000)/",
+      "SVRPRouteData": [
+        { "RouteId": "RD0020", "RouteName": "Ростов-на-Дону — Азов" }
+      ]
+    },
+    {
+      "TransportationId": "29317602",
+      "PlanningPoint": "VE86",
+      "PlanningPointName": "СК86 EWM",
+      "DriverId": "321356",
+      "DriverName": "Петров П.П.",
+      "CarBrand": "MAN",
+      "CarNumber": "О321ОР 77",
+      "AddressPointCount": 20,
+      "FactYandexPointCount": 2,
+      "FactETPPointCount": 1,
+      "FailedPointCount": 0,
+      "PlanDepartureTime": "/Date(1735624800000)/",
+      "SVRPRouteData": [
+        { "RouteId": "MSK0001", "RouteName": "Москва — Химки" }
+      ]
+    },
+    {
+      "TransportationId": "29317603",
+      "PlanningPoint": "VE86",
+      "PlanningPointName": "СК86 EWM",
+      "DriverId": "321357",
+      "DriverName": "Сидоров С.С.",
+      "CarBrand": "Volvo",
+      "CarNumber": "Р654АК 78",
+      "AddressPointCount": 16,
+      "FactYandexPointCount": 0,
+      "FactETPPointCount": 3,
+      "FailedPointCount": 2,
+      "PlanDepartureTime": "/Date(1735711200000)/",
+      "SVRPRouteData": [
+        { "RouteId": "SPB0002", "RouteName": "Санкт-Петербург — Пушкин" },
+        { "RouteId": "SPB0001", "RouteName": "Санкт-Петербург — Минск" }
+      ]
+    },
+    {
+      "TransportationId": "29317604",
+      "PlanningPoint": "PE89",
+      "PlanningPointName": "РЦД Белгород",
+      "DriverId": "321358",
+      "DriverName": "Кузнецов К.К.",
+      "CarBrand": "Hyundai",
+      "CarNumber": "Н987ТТ 16",
+      "AddressPointCount": 10,
+      "FactYandexPointCount": 1,
+      "FactETPPointCount": 0,
+      "FailedPointCount": 1,
+      "PlanDepartureTime": "/Date(1735797600000)/",
+      "SVRPRouteData": [
+        { "RouteId": "BG0014", "RouteName": "Белгород — Шебекино" }
+      ]
+    },
+    {
+      "TransportationId": "29317605",
+      "PlanningPoint": "RD01",
+      "PlanningPointName": "РЦД Ростов-на-Дону",
+      "DriverId": "321359",
+      "DriverName": "Смирнов С.С.",
+      "CarBrand": "Isuzu",
+      "CarNumber": "Т246ХХ 66",
+      "AddressPointCount": 18,
+      "FactYandexPointCount": 6,
+      "FactETPPointCount": 2,
+      "FailedPointCount": 0,
+      "PlanDepartureTime": "/Date(1735884000000)/",
+      "SVRPRouteData": [
+        { "RouteId": "RD0016", "RouteName": "Ростов-на-Дону — Батайск" }
+      ]
+    },
+    {
+      "TransportationId": "29317606",
+      "PlanningPoint": "VE86",
+      "PlanningPointName": "СК86 EWM",
+      "DriverId": "321360",
+      "DriverName": "Попов П.П.",
+      "CarBrand": "ГАЗель",
+      "CarNumber": "К789МН 34",
+      "AddressPointCount": 9,
+      "FactYandexPointCount": 0,
+      "FactETPPointCount": 0,
+      "FailedPointCount": 0,
+      "PlanDepartureTime": "/Date(1735970400000)/",
+      "SVRPRouteData": [
+        { "RouteId": "MSK0003", "RouteName": "Казань — Зеленодольск" }
+      ]
+    },
+    {
+      "TransportationId": "29317607",
+      "PlanningPoint": "PE89",
+      "PlanningPointName": "РЦД Белгород",
+      "DriverId": "321361",
+      "DriverName": "Васильев В.В.",
+      "CarBrand": "КамАЗ",
+      "CarNumber": "В456ЕЕ 52",
+      "AddressPointCount": 22,
+      "FactYandexPointCount": 3,
+      "FactETPPointCount": 1,
+      "FailedPointCount": 4,
+      "PlanDepartureTime": "/Date(1736056800000)/",
+      "SVRPRouteData": [
+        { "RouteId": "BG0015", "RouteName": "Белгород — Губкин" }
+      ]
+    }
+  ]
+}
