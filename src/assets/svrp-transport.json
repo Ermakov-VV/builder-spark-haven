@@ -12,7 +12,8 @@
       "FactYandexPointCount": 14,
       "FactETPPointCount": 5,
       "FailedPointCount": 24,
-      "PlanDepartureTime": "/Date(1735365600000)/",
+      "SumFailedPointCount": 43,
+      "PlanDepartureTime": "/Date(1757635200000)/",
       "SVRPRouteData": [
         { "RouteId": "BG0013", "RouteName": "Блг-Белгород(Строитель)" }
       ]
@@ -29,7 +30,8 @@
       "FactYandexPointCount": 12,
       "FactETPPointCount": 4,
       "FailedPointCount": 21,
-      "PlanDepartureTime": "/Date(1735452000000)/",
+      "SumFailedPointCount": 37,
+      "PlanDepartureTime": "/Date(1757721600000)/",
       "SVRPRouteData": [
         { "RouteId": "RD0015", "RouteName": "Ростов-на-Дону-Минск(СК51)" }
       ]
@@ -46,7 +48,8 @@
       "FactYandexPointCount": 0,
       "FactETPPointCount": 0,
       "FailedPointCount": 0,
-      "PlanDepartureTime": "/Date(1735538400000)/",
+      "SumFailedPointCount": 0,
+      "PlanDepartureTime": "/Date(1757808000000)/",
       "SVRPRouteData": [
         { "RouteId": "RD0020", "RouteName": "Ростов-на-Дону — Азов" }
       ]
@@ -63,7 +66,8 @@
       "FactYandexPointCount": 2,
       "FactETPPointCount": 1,
       "FailedPointCount": 0,
-      "PlanDepartureTime": "/Date(1735624800000)/",
+      "SumFailedPointCount": 3,
+      "PlanDepartureTime": "/Date(1757894400000)/",
       "SVRPRouteData": [
         { "RouteId": "MSK0001", "RouteName": "Москва — Химки" }
       ]
@@ -80,7 +84,8 @@
       "FactYandexPointCount": 0,
       "FactETPPointCount": 3,
       "FailedPointCount": 2,
-      "PlanDepartureTime": "/Date(1735711200000)/",
+      "SumFailedPointCount": 5,
+      "PlanDepartureTime": "/Date(1757980800000)/",
       "SVRPRouteData": [
         { "RouteId": "SPB0002", "RouteName": "Санкт-Петербург — Пушкин" },
         { "RouteId": "SPB0001", "RouteName": "Санкт-Петербург — Минск" }
@@ -98,7 +103,8 @@
       "FactYandexPointCount": 1,
       "FactETPPointCount": 0,
       "FailedPointCount": 1,
-      "PlanDepartureTime": "/Date(1735797600000)/",
+      "SumFailedPointCount": 2,
+      "PlanDepartureTime": "/Date(1758067200000)/",
       "SVRPRouteData": [
         { "RouteId": "BG0014", "RouteName": "Белгород — Шебекино" }
       ]
@@ -115,7 +121,8 @@
       "FactYandexPointCount": 6,
       "FactETPPointCount": 2,
       "FailedPointCount": 0,
-      "PlanDepartureTime": "/Date(1735884000000)/",
+      "SumFailedPointCount": 8,
+      "PlanDepartureTime": "/Date(1758153600000)/",
       "SVRPRouteData": [
         { "RouteId": "RD0016", "RouteName": "Ростов-на-Дону — Батайск" }
       ]
@@ -132,7 +139,8 @@
       "FactYandexPointCount": 0,
       "FactETPPointCount": 0,
       "FailedPointCount": 0,
-      "PlanDepartureTime": "/Date(1735970400000)/",
+      "SumFailedPointCount": 0,
+      "PlanDepartureTime": "/Date(1758240000000)/",
       "SVRPRouteData": [
         { "RouteId": "MSK0003", "RouteName": "Казань — Зеленодольск" }
       ]
@@ -149,7 +157,8 @@
       "FactYandexPointCount": 3,
       "FactETPPointCount": 1,
       "FailedPointCount": 4,
-      "PlanDepartureTime": "/Date(1736056800000)/",
+      "SumFailedPointCount": 8,
+      "PlanDepartureTime": "/Date(1758240000000)/",
       "SVRPRouteData": [
         { "RouteId": "BG0015", "RouteName": "Белгород — Губкин" }
       ]

@@ -25,6 +25,7 @@ import "dayjs/locale/ru";
 import ruLocale from "antd/locale/ru_RU";
 import ApexChart from "react-apexcharts";
 import { PieChart } from "@mui/x-charts";
+import svrpBundle from '../assets/svrp-transport.json';
 
 type SVRPRoute = { RouteId: string; RouteName: string };
 
@@ -40,6 +41,7 @@ type SVRPItem = {
   FactYandexPointCount: number;
   FactETPPointCount: number;
   FailedPointCount: number;
+  SumFailedPointCount?: number;
   PlanDepartureTime: string; // \/Date(1735365600000)\/
   SVRPRouteData: SVRPRoute[];
 };
@@ -58,6 +60,7 @@ type TransportRow = {
   etpPointsCount: number;
   ymPointsCount: number;
   outOfOrderCount: number;
+  violationsPct: number;
   hasViolations: boolean;
   planDepartureISO: string; // ISO string
   raw: SVRPItem;
@@ -87,67 +90,55 @@ export default function ReportsTransport() {
   const [data, setData] = React.useState<SVRPItem[]>([]);
   const [planningOptions, setPlanningOptions] = React.useState<PlanningOption[]>([]);
   const [selectedPlanning, setSelectedPlanning] = React.useState<string[]>([]);
+  // Applied filter values (used by charts/table); update only on Apply
+  const [appliedDateRange, setAppliedDateRange] = React.useState<[Date | null, Date | null]>(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 7);
+    return [start, end];
+  });
+  const [appliedPlanning, setAppliedPlanning] = React.useState<string[]>([]);
+
   const [touchedDate, setTouchedDate] = React.useState(false);
   const [touchedPlanning, setTouchedPlanning] = React.useState(false);
   const isDateValid = Boolean(dateRange[0]) && Boolean(dateRange[1]);
   const isPlanningValid = selectedPlanning.length > 0;
   const isFormValid = isDateValid && isPlanningValid;
+  // Validity for applied filters
+  const isFilterDateValid = Boolean(appliedDateRange[0]) && Boolean(appliedDateRange[1]);
+  const isFilterPlanningValid = appliedPlanning.length > 0;
+
   const getDialogContainer = React.useCallback(() => (document.querySelector('.MuiDialog-root') as HTMLElement) || document.body, []);
 
-  // Load SVRP data from static asset (fallback to in-bundle JSON)
+  // Load SVRP data from static asset
   React.useEffect(() => {
-    try {
-      // Try to read from bundled JSON in src/assets
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const bundled = require('../assets/svrp-transport.json') as any;
-      const arr: SVRPItem[] = Array.isArray(bundled?.SVRPFactTransportation) ? bundled.SVRPFactTransportation : [];
-      setData(arr);
-      const map = new Map<string, string>();
-      arr.forEach((it) => { if (!map.has(it.PlanningPoint)) map.set(it.PlanningPoint, it.PlanningPointName); });
-      const opts: PlanningOption[] = Array.from(map.entries()).map(([code, name]) => ({ mpt: code, name, value: code, label: `${code} — ${name}` }));
-      setPlanningOptions(opts);
-      if (selectedPlanning.length === 0 && opts.length > 0) {
-        setSelectedPlanning(opts.map((o) => o.value));
-      }
-    } catch (err) {
-      // As a secondary attempt, try fetching from public folder
-      fetch('/data/svrp-transport.json')
-        .then((r) => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
-        .then((j) => {
-          const arr: SVRPItem[] = Array.isArray(j?.SVRPFactTransportation) ? j.SVRPFactTransportation : [];
-          setData(arr);
-          const map = new Map<string, string>();
-          arr.forEach((it) => { if (!map.has(it.PlanningPoint)) map.set(it.PlanningPoint, it.PlanningPointName); });
-          const opts: PlanningOption[] = Array.from(map.entries()).map(([code, name]) => ({ mpt: code, name, value: code, label: `${code} — ${name}` }));
-          setPlanningOptions(opts);
-          if (selectedPlanning.length === 0 && opts.length > 0) {
-            setSelectedPlanning(opts.map((o) => o.value));
-          }
-        })
-        .catch((e) => {
-          console.error('Failed to load SVRP data', e);
-          setData([]);
-          setPlanningOptions([]);
-        });
+    const bundled = (svrpBundle as any);
+    const arr: SVRPItem[] = Array.isArray(bundled?.SVRPFactTransportation) ? bundled.SVRPFactTransportation : [];
+    setData(arr);
+    const map = new Map<string, string>();
+    arr.forEach((it) => { if (!map.has(it.PlanningPoint)) map.set(it.PlanningPoint, it.PlanningPointName); });
+    const opts: PlanningOption[] = Array.from(map.entries()).map(([code, name]) => ({ mpt: code, name, value: code, label: `${code} — ${name}` }));
+    setPlanningOptions(opts);
+    if (selectedPlanning.length === 0 && opts.length > 0) {
+      const all = opts.map((o) => o.value);
+      setSelectedPlanning(all);
+      if (appliedPlanning.length === 0) setAppliedPlanning(all);
     }
   }, []);
 
   const [cards, setCards] = React.useState([
     { id: "card1", title: "Карточка 1" },
     { id: "card2", title: "Карточка 2" },
-    { id: "card4", title: "Количество транспортировок по дням" },
+    { id: "card4", title: "Количество транспор��ировок по ��ням" },
     { id: "card5", title: "Карточка 5" },
   ]);
 
   const tableData: TransportRow[] = React.useMemo(() => {
-    if (!isDateValid) return [];
-    const start = dateRange[0] ? dayjs(dateRange[0]).startOf("day") : null;
-    const end = dateRange[1] ? dayjs(dateRange[1]).endOf("day") : null;
+    if (!isFilterDateValid) return [];
+    const start = appliedDateRange[0] ? dayjs(appliedDateRange[0]).startOf("day") : null;
+    const end = appliedDateRange[1] ? dayjs(appliedDateRange[1]).endOf("day") : null;
     const filtered = data.filter((it) => {
-      if (selectedPlanning.length && !selectedPlanning.includes(it.PlanningPoint)) return false;
+      if (appliedPlanning.length && !appliedPlanning.includes(it.PlanningPoint)) return false;
       const d = parseDotNetDate(it.PlanDepartureTime);
       if (!d) return false;
       const dj = dayjs(d);
@@ -158,7 +149,10 @@ export default function ReportsTransport() {
     return filtered.map((it) => {
       const d = parseDotNetDate(it.PlanDepartureTime) || new Date();
       const routes = Array.isArray(it.SVRPRouteData) ? it.SVRPRouteData.map((r) => r.RouteName) : [];
-      const hasViol = (it.FactYandexPointCount > 0) || (it.FactETPPointCount > 0) || (it.FailedPointCount > 0);
+      const sumFailedRaw = Number.isFinite(Number(it.SumFailedPointCount)) ? Number(it.SumFailedPointCount) : (it.FactYandexPointCount + it.FactETPPointCount + it.FailedPointCount);
+      const sumFailed = Math.min(sumFailedRaw, Math.max(0, it.AddressPointCount || 0));
+      const hasViol = sumFailed > 0;
+      const violationsPct = it.AddressPointCount > 0 ? Math.round((sumFailed / it.AddressPointCount) * 100) : 0;
       return {
         key: it.TransportationId,
         mpt: it.PlanningPoint,
@@ -171,14 +165,29 @@ export default function ReportsTransport() {
         etpPointsCount: it.FactETPPointCount,
         ymPointsCount: it.FactYandexPointCount,
         outOfOrderCount: it.FailedPointCount,
+        violationsPct,
         hasViolations: hasViol,
         planDepartureISO: d.toISOString(),
         raw: it,
       } as TransportRow;
     });
-  }, [data, dateRange, selectedPlanning, isDateValid]);
+  }, [data, appliedDateRange, appliedPlanning, isFilterDateValid]);
 
   const [searchText, setSearchText] = React.useState("");
+  const [kpiFilter, setKpiFilter] = React.useState<'all' | 'ok' | 'bad'>('all');
+  const kpiFilteredData = React.useMemo(() => {
+    if (kpiFilter === 'ok') return tableData.filter((r) => !r.hasViolations);
+    if (kpiFilter === 'bad') return tableData.filter((r) => r.hasViolations);
+    return tableData;
+  }, [tableData, kpiFilter]);
+  const [kpi2Filter, setKpi2Filter] = React.useState<'none' | 'etp' | 'ym' | 'order'>('none');
+  const combinedData = React.useMemo(() => {
+    let base = kpiFilteredData;
+    if (kpi2Filter === 'etp') base = base.filter((r) => (r.etpPointsCount || 0) > 0);
+    if (kpi2Filter === 'ym') base = base.filter((r) => (r.ymPointsCount || 0) > 0);
+    if (kpi2Filter === 'order') base = base.filter((r) => (r.outOfOrderCount || 0) > 0);
+    return base;
+  }, [kpiFilteredData, kpi2Filter]);
 
   const normalized = (v: unknown) => String(v ?? "").toLowerCase();
   const recordMatchesSearch = (r: TransportRow, q: string) => {
@@ -203,11 +212,11 @@ export default function ReportsTransport() {
     return hay.includes(needle);
   };
 
-  const filteredData = React.useMemo(() => tableData.filter((r) => recordMatchesSearch(r, searchText)), [tableData, searchText]);
+  const filteredData = React.useMemo(() => combinedData.filter((r) => recordMatchesSearch(r, searchText)), [combinedData, searchText]);
 
   const dateChart = React.useMemo(() => {
-    if (!isDateValid) return { labels: [], totals: [], violations: [] };
-    const startSel = dateRange?.[0] ? dayjs(dateRange[0]) : dayjs();
+    if (!isFilterDateValid) return { labels: [], totals: [], violations: [] };
+    const startSel = appliedDateRange?.[0] ? dayjs(appliedDateRange[0]) : dayjs();
     const mStart = startSel.startOf('month');
     const mEnd = startSel.endOf('month');
 
@@ -224,7 +233,7 @@ export default function ReportsTransport() {
     const totalsMap = new Map<string, number>();
     const violMap = new Map<string, number>();
     keysAll.forEach((k) => { totalsMap.set(k, 0); violMap.set(k, 0); });
-    tableData.forEach((r) => {
+    combinedData.forEach((r) => {
       const k = dayjs(r.planDepartureISO).format('YYYY-MM-DD');
       if (!totalsMap.has(k)) return;
       totalsMap.set(k, (totalsMap.get(k) || 0) + 1);
@@ -239,7 +248,7 @@ export default function ReportsTransport() {
       totals: rows.map((r) => r.t),
       violations: rows.map((r) => r.v),
     };
-  }, [tableData, dateRange, isDateValid]);
+  }, [combinedData, appliedDateRange, isFilterDateValid]);
 
   const yMax = React.useMemo(() => {
     const t = dateChart.totals || [];
@@ -248,7 +257,7 @@ export default function ReportsTransport() {
     return Math.max(1, maxVal);
   }, [dateChart]);
 
-  const totals = React.useMemo(() => {
+  const cardTotals = React.useMemo(() => {
     const total = tableData.length;
     let withViol = 0;
     tableData.forEach((r) => { if (r.hasViolations) withViol++; });
@@ -258,16 +267,16 @@ export default function ReportsTransport() {
     return { total, withViolations: withViol, withoutViolations: withoutViol, pctWith, pctWithout };
   }, [tableData]);
 
-  const sums = React.useMemo(() => {
+  const card2Sums = React.useMemo(() => {
     let etp = 0, ym = 0, failed = 0;
-    tableData.forEach((r) => { etp += r.etpPointsCount; ym += r.ymPointsCount; failed += r.outOfOrderCount; });
+    kpiFilteredData.forEach((r) => { etp += r.etpPointsCount; ym += r.ymPointsCount; failed += r.outOfOrderCount; });
     return { etp, ym, failed };
-  }, [tableData]);
+  }, [kpiFilteredData]);
 
   const apexSeries = React.useMemo(() => (
     [
       { name: "Всего", data: dateChart.totals || [] },
-      { name: "С нарушениями", data: dateChart.violations || [] },
+      { name: "С наруш��ниями", data: dateChart.violations || [] },
     ]
   ), [dateChart]);
 
@@ -330,7 +339,7 @@ export default function ReportsTransport() {
   }, []);
   React.useEffect(() => {
     setTablePagination((p) => ({ ...p, current: 1 }));
-  }, [searchText]);
+  }, [searchText, kpiFilter, kpi2Filter]);
 
   const [routeDialogOpen, setRouteDialogOpen] = React.useState(false);
   const [routeDialogItems, setRouteDialogItems] = React.useState<string[]>([]);
@@ -410,7 +419,7 @@ export default function ReportsTransport() {
         sorter: (a: TransportRow, b: TransportRow) => a.etpPointsCount - b.etpPointsCount,
       },
       {
-        title: "Кол-во тчк ЯМ",
+        title: "Ко����-во тчк ЯМ",
         dataIndex: "ymPointsCount",
         key: "ymPointsCount",
         sorter: (a: TransportRow, b: TransportRow) => a.ymPointsCount - b.ymPointsCount,
@@ -422,11 +431,11 @@ export default function ReportsTransport() {
         sorter: (a: TransportRow, b: TransportRow) => a.outOfOrderCount - b.outOfOrderCount,
       },
       {
-        title: "Нарушения",
-        dataIndex: "hasViolations",
-        key: "hasViolations",
-        sorter: (a: TransportRow, b: TransportRow) => Number(a.hasViolations) - Number(b.hasViolations),
-        render: (v: boolean) => (v ? "Да" : "Нет"),
+        title: "% Нарушений",
+        dataIndex: "violationsPct",
+        key: "violationsPct",
+        sorter: (a: TransportRow, b: TransportRow) => a.violationsPct - b.violationsPct,
+        render: (v: number) => `${v}%`,
       },
     ],
     [],
@@ -533,8 +542,66 @@ export default function ReportsTransport() {
     setDraggingId(null);
   };
 
+  const onKpiClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    const totalEl = target.closest('.card1-total');
+    if (totalEl) { setKpiFilter('all'); return; }
+    const kpiEl = target.closest('.kpi-inline');
+    if (!kpiEl) return;
+    const container = target.closest('.card1-summary-left');
+    if (!container) return;
+    const inlines = Array.from(container.querySelectorAll(':scope > .kpi-inline')) as HTMLElement[];
+    const idx = inlines.indexOf(kpiEl as HTMLElement);
+    if (idx === 0) setKpiFilter((f) => (f === 'ok' ? 'all' : 'ok'));
+    if (idx === 1) setKpiFilter((f) => (f === 'bad' ? 'all' : 'bad'));
+  };
+
+  const onKpi2Click = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    const kpiEl = target.closest('.kpi-inline');
+    if (!kpiEl) return;
+    const container = target.closest('.card1-summary-left');
+    if (!container) return;
+    const inlines = Array.from(container.querySelectorAll(':scope > .kpi-inline')) as HTMLElement[];
+    const idx = inlines.indexOf(kpiEl as HTMLElement);
+    if (idx === 0) setKpi2Filter((f) => (f === 'etp' ? 'none' : 'etp'));
+    if (idx === 1) setKpi2Filter((f) => (f === 'ym' ? 'none' : 'ym'));
+    if (idx === 2) setKpi2Filter((f) => (f === 'order' ? 'none' : 'order'));
+  };
+
+  const onCard1PieArcClick = React.useCallback((_e: any, d: any) => {
+    const label = String(d?.label ?? d?.data?.label ?? '').toLowerCase();
+    const id = Number.isFinite(Number(d?.id)) ? Number(d.id) : (Number.isFinite(Number(d?.data?.id)) ? Number(d?.data?.id) : NaN);
+    if (label.includes('без') || id === 0) {
+      setKpiFilter((f) => (f === 'ok' ? 'all' : 'ok'));
+    } else if (label.includes('наруш') || id === 1) {
+      setKpiFilter((f) => (f === 'bad' ? 'all' : 'bad'));
+    }
+  }, []);
+
+  const onCard2PieArcClick = React.useCallback((_e: any, d: any) => {
+    const label = String(d?.label ?? d?.data?.label ?? '').toLowerCase();
+    const id = Number.isFinite(Number(d?.id)) ? Number(d.id) : (Number.isFinite(Number(d?.data?.id)) ? Number(d?.data?.id) : NaN);
+    if (label.includes('этп') || id === 0) {
+      setKpi2Filter((f) => (f === 'etp' ? 'none' : 'etp'));
+    } else if (label.includes('ям') || id === 1) {
+      setKpi2Filter((f) => (f === 'ym' ? 'none' : 'ym'));
+    } else if (label.includes('поряд') || id === 2) {
+      setKpi2Filter((f) => (f === 'order' ? 'none' : 'order'));
+    }
+  }, []);
+
   const handleApply = () => {
-    setDialogOpen(false);
+    if (isFormValid) {
+      setAppliedDateRange(dateRange);
+      setAppliedPlanning(selectedPlanning);
+      setDialogOpen(false);
+    } else {
+      setTouchedDate(true);
+      setTouchedPlanning(true);
+    }
   };
 
   const handleExit = () => {
@@ -549,13 +616,25 @@ export default function ReportsTransport() {
   return (
     <ConfigProvider locale={ruLocale}>
       <div className="reports-transport-page">
-        <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
+        <div className="breadcrumbs-row">
+          <PageBreadcrumbs onCurrentClick={() => setDialogOpen(true)} />
+          <div className="breadcrumbs-actions">
+            <span className="breadcrumbs-date-range" aria-label="Выбранный период">
+              {isFilterDateValid ? `${dayjs(appliedDateRange[0]).format('DD.MM.YYYY')} – ${dayjs(appliedDateRange[1]).format('DD.MM.YYYY')}` : '—'}
+            </span>
+            <Button size="small" variant="outlined" className="breadcrumbs-filter-btn" aria-label="Открыть фильтр" onClick={() => setDialogOpen(true)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M3 5h18M6 12h12M10 19h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </Button>
+          </div>
+        </div>
 
         <div className="transport-grid" onDragOver={onGridDragOver} onDrop={onGridDrop}>
           {cards.map((card, idx) => (
             <div
               key={card.id}
-              className={`transport-card-wrapper${card.id === "card4" ? " full-width full-rest" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${(card.id === "card1" || card.id === "card2") ? " taller-16" : ""}${overIndex === idx ? " drag-over" : ""}`}
+              className={`transport-card-wrapper${card.id === "card4" ? " full-width full-rest" : ""}${card.id === "card5" ? " full-width full-rest" : ""}${(card.id === "card1" || card.id === "card2") ? " taller-17" : ""}${overIndex === idx ? " drag-over" : ""}`}
               onDragOver={onCardDragOver(idx)}
               onDrop={onCardDrop(idx)}
             >
@@ -584,8 +663,8 @@ export default function ReportsTransport() {
                     onTouchStart={(e) => e.stopPropagation()}
                     onDragStart={(e) => e.stopPropagation()}
                   >
-                    <div className="card1-summary-left">
-                      <div className="kpi-inline">
+                    <div className="card1-summary-left" onClick={onKpi2Click}>
+                      <div className={`kpi-inline${kpi2Filter==='etp' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpi2Filter==='etp'}>
                         <div className="kpi-row">
                           <div className="kpi-icon-left" aria-hidden>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -593,11 +672,11 @@ export default function ReportsTransport() {
                               <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </div>
-                          <div className="kpi-number" aria-label="Точек с опозданием ЭТП значение">{sums.etp}</div>
+                          <div className="kpi-number" aria-label="��очек с опозданием ЭТП значение">{card2Sums.etp}</div>
                         </div>
-                        <div className="kpi-caption">Точек с опозданием ЭТП</div>
+                        <div className="kpi-caption">Точек с ��позданием ЭТП</div>
                       </div>
-                      <div className="kpi-inline">
+                      <div className={`kpi-inline${kpi2Filter==='ym' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpi2Filter==='ym'}>
                         <div className="kpi-row">
                           <div className="kpi-icon-left" aria-hidden>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -605,11 +684,11 @@ export default function ReportsTransport() {
                               <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </div>
-                          <div className="kpi-number" aria-label="Точек с опозданием ЯМ значение">{sums.ym}</div>
+                          <div className="kpi-number" aria-label="Точек с опо��данием ЯМ значение">{card2Sums.ym}</div>
                         </div>
                         <div className="kpi-caption">Точек с опозданием ЯМ</div>
                       </div>
-                      <div className="kpi-inline">
+                      <div className={`kpi-inline${kpi2Filter==='order' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpi2Filter==='order'}>
                         <div className="kpi-row">
                           <div className="kpi-icon-left" aria-hidden>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -617,31 +696,31 @@ export default function ReportsTransport() {
                               <circle cx="12" cy="9" r="2" fill="currentColor"/>
                             </svg>
                           </div>
-                          <div className="kpi-number" aria-label="Точек выполнили не по порядку значение">{sums.failed}</div>
+                          <div className="kpi-number" aria-label="Точек выполнили не по порядку значение">{card2Sums.failed}</div>
                         </div>
                         <div className="kpi-caption">Точек выполнили не по порядку</div>
                       </div>
                     </div>
                     <div className="card1-summary-right">
                       <div className="chart-fill" ref={pie2ContainerRef}>
-                        <PieChart
+                        <PieChart hideLegend
                           width={pie2Size}
                           height={pie2Size}
                           series={[{
                             innerRadius: Math.max(32, Math.round(pie2Size * 0.30)),
                             data: [
-                              { id: 0, value: sums.etp, label: 'ЭТП', color: '#ff9800' },
-                              { id: 1, value: sums.ym, label: 'ЯМ', color: '#f44336' },
-                              { id: 2, value: sums.failed, label: 'Не по порядку', color: '#2196f3' },
+                              { id: 0, value: card2Sums.etp, label: 'ЭТП', color: '#ff9800' },
+                              { id: 1, value: card2Sums.ym, label: 'ЯМ', color: '#f44336' },
+                              { id: 2, value: card2Sums.failed, label: 'Не по порядку', color: '#2196f3' },
                             ],
                             valueFormatter: (item: any) => `${item.value}`,
                           }]}
-                          slotProps={{ legend: { hidden: true } }}
+                          slotProps={{ legend: { hidden: true }, pieArc: { onClick: onCard2PieArcClick } } as any}
                         />
                         <div className="donut-legend legend-inline" aria-label="Легенда диаграммы">
-                          <div className="legend-item"><span className="legend-swatch legend-etp" aria-hidden></span><span className="legend-label">ЭТП</span></div>
-                          <div className="legend-item"><span className="legend-swatch legend-ym" aria-hidden></span><span className="legend-label">ЯМ</span></div>
-                          <div className="legend-item"><span className="legend-swatch legend-order" aria-hidden></span><span className="legend-label">Не по поряд��у</span></div>
+                          <div className={`legend-item${kpi2Filter==='etp' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpi2Filter==='etp'} onClick={() => setKpi2Filter(kpi2Filter==='etp' ? 'none' : 'etp')} onKeyDown={(e) => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); setKpi2Filter(kpi2Filter==='etp' ? 'none' : 'etp'); } }}><span className="legend-swatch legend-etp" aria-hidden></span><span className="legend-label">ЭТП</span></div>
+                          <div className={`legend-item${kpi2Filter==='ym' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpi2Filter==='ym'} onClick={() => setKpi2Filter(kpi2Filter==='ym' ? 'none' : 'ym')} onKeyDown={(e) => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); setKpi2Filter(kpi2Filter==='ym' ? 'none' : 'ym'); } }}><span className="legend-swatch legend-ym" aria-hidden></span><span className="legend-label">ЯМ</span></div>
+                          <div className={`legend-item${kpi2Filter==='order' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpi2Filter==='order'} onClick={() => setKpi2Filter(kpi2Filter==='order' ? 'none' : 'order')} onKeyDown={(e) => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); setKpi2Filter(kpi2Filter==='order' ? 'none' : 'order'); } }}><span className="legend-swatch legend-order" aria-hidden></span><span className="legend-label">Не по порядку</span></div>
                         </div>
                       </div>
                     </div>
@@ -655,11 +734,11 @@ export default function ReportsTransport() {
                     onDragStart={(e) => e.stopPropagation()}
                   >
                     <div className="card1-summary-left">
-                      <div className="card1-total">
-                        <div className="stat-summary-value" aria-label="Общ��е количество транспортировок значение">{totals.total}</div>
+                      <div className={`card1-total${kpiFilter==='all' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpiFilter==='all'} onClick={() => setKpiFilter('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setKpiFilter('all'); } }}>
+                        <div className="stat-summary-value" aria-label="Общ��е количество транспортировок значение">{cardTotals.total}</div>
                         <div className="stat-summary-label" aria-label="Общее количество транспортировок подпись">Общее количество транспортировок</div>
                       </div>
-                      <div className="kpi-inline">
+                      <div className={`kpi-inline${kpiFilter==='ok' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpiFilter==='ok'} onClick={() => setKpiFilter(kpiFilter==='ok' ? 'all' : 'ok')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setKpiFilter(kpiFilter==='ok' ? 'all' : 'ok'); } }}>
                         <div className="kpi-row">
                           <div className="kpi-icon-left" aria-hidden>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -667,11 +746,11 @@ export default function ReportsTransport() {
                               <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </div>
-                          <div className="kpi-number" aria-label="Без нарушений значени��">{totals.withoutViolations}</div>
+                          <div className="kpi-number" aria-label="Без нарушений значение">{cardTotals.withoutViolations}</div>
                         </div>
                         <div className="kpi-caption">Без нарушений</div>
                       </div>
-                      <div className="kpi-inline">
+                      <div className={`kpi-inline${kpiFilter==='bad' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpiFilter==='bad'} onClick={() => setKpiFilter(kpiFilter==='bad' ? 'all' : 'bad')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setKpiFilter(kpiFilter==='bad' ? 'all' : 'bad'); } }}>
                         <div className="kpi-row">
                           <div className="kpi-icon-left" aria-hidden>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -680,32 +759,32 @@ export default function ReportsTransport() {
                               <circle cx="12" cy="16" r="1.2" fill="currentColor"/>
                             </svg>
                           </div>
-                          <div className="kpi-number" aria-label="С нарушени��ми значение">{totals.withViolations}</div>
+                          <div className="kpi-number" aria-label="С нарушениями значение">{cardTotals.withViolations}</div>
                         </div>
                         <div className="kpi-caption">С нарушениями</div>
                       </div>
                     </div>
                     <div className="card1-summary-right">
                       <div className="chart-fill" ref={pieContainerRef}>
-                        <PieChart
+                        <PieChart hideLegend
                           width={pieSize}
                           height={pieSize}
                           series={[{
                             innerRadius: Math.max(32, Math.round(pieSize * 0.30)),
                             data: [
-                              { id: 0, value: totals.withoutViolations, label: 'Без нарушений', color: '#008ffb' },
-                              { id: 1, value: totals.withViolations, label: 'С нарушениями', color: '#9c27b0' },
+                              { id: 0, value: cardTotals.withoutViolations, label: 'Без нарушений', color: '#008ffb' },
+                              { id: 1, value: cardTotals.withViolations, label: 'С нарушениями', color: '#9c27b0' },
                             ],
-                            valueFormatter: (item: any) => `${Math.round((item.value / Math.max(1, totals.total)) * 100)}%`,
+                            valueFormatter: (item: any) => `${Math.round((item.value / Math.max(1, cardTotals.total)) * 100)}%`,
                           }]}
-                          slotProps={{ legend: { hidden: true } }}
+                          slotProps={{ legend: { hidden: true }, pieArc: { onClick: onCard1PieArcClick } } as any}
                         />
-                        <div className="donut-legend" aria-label="Легенда диаграммы">
-                          <div className="legend-item">
+                        <div className="donut-legend" aria-label="Легенда диаг��аммы">
+                          <div className={`legend-item${kpiFilter==='ok' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpiFilter==='ok'} onClick={() => setKpiFilter(kpiFilter==='ok' ? 'all' : 'ok')} onKeyDown={(e) => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); setKpiFilter(kpiFilter==='ok' ? 'all' : 'ok'); } }}>
                             <span className="legend-swatch legend-ok" aria-hidden></span>
                             <span className="legend-label">Без нарушений</span>
                           </div>
-                          <div className="legend-item">
+                          <div className={`legend-item${kpiFilter==='bad' ? ' is-active' : ''}`} role="button" tabIndex={0} aria-pressed={kpiFilter==='bad'} onClick={() => setKpiFilter(kpiFilter==='bad' ? 'all' : 'bad')} onKeyDown={(e) => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); setKpiFilter(kpiFilter==='bad' ? 'all' : 'bad'); } }}>
                             <span className="legend-swatch legend-bad" aria-hidden></span>
                             <span className="legend-label">С нарушениями</span>
                           </div>
@@ -715,7 +794,7 @@ export default function ReportsTransport() {
                   </div>
                 )}
                 {card.id === "card4" && (
-                  <div className="transport-card-content" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onDragStart={(e) => e.stopPropagation()}>
+                  <div className="transport-card-content no-scroll" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} onDragStart={(e) => e.stopPropagation()}>
                     <ApexChart
                       type="bar"
                       height={450}
@@ -798,7 +877,7 @@ export default function ReportsTransport() {
         >
           <DialogTitle id="routes-dialog-title">Полный маршрут</DialogTitle>
           <DialogContent>
-            <ul className="routes-listbox" role="listbox" aria-label="Список маршрутов">
+            <ul className="routes-listbox" role="listbox" aria-labelledby="routes-dialog-title">
               {routeDialogItems.map((r, i) => (
                 <li role="option" key={`${r}-${i}`}>{r}</li>
               ))}
@@ -839,14 +918,17 @@ export default function ReportsTransport() {
                 )}
                 <div className="planning-picker-row">
                   <Select
-                    className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
-                    classNamePrefix="planning"
-                    isMulti
-                    placeholder="Место планирования транспортировки"
-                    options={planningOptions}
-                    value={planningOptions.filter((o) => selectedPlanning.includes(o.value))}
-                    onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => (v as any).value)); setTouchedPlanning(true); }}
-                    getOptionValue={(o) => (o as any).value}
+                      aria-label="Место планирования транспортировки"
+                      className={`planning-picker-input planning-select-container${!isPlanningValid && touchedPlanning ? " is-invalid" : ""}`}
+                      classNamePrefix="planning"
+                      isMulti
+                      placeholder="Место планирования транспо��тировки"
+                      noOptionsMessage={() => "Нет вариантов"}
+                      loadingMessage={() => "Загрузка..."}
+                      options={planningOptions}
+                      value={planningOptions.filter((o) => selectedPlanning.includes(o.value))}
+                      onChange={(vals) => { setSelectedPlanning(((vals as MultiValue<any>) || []).map((v) => (v as any).value)); setTouchedPlanning(true); }}
+                      getOptionValue={(o) => (o as any).value}
                     getOptionLabel={(o) => `${(o as any).mpt} — ${(o as any).name}`}
                     formatOptionLabel={(option: any) => (
                       <div className="planning-option">

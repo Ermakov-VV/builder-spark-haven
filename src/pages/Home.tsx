@@ -46,7 +46,7 @@ export default function Home() {
               <CardHeader avatar={<LocalShippingIcon />} title={<span className="feature-card-title">Отчет по транспортировкам</span>} />
               <CardContent className="feature-card-content">
                 <Typography variant="body2" component="p">
-                  Сводная аналитика по транспортировк��м за выбранный период.
+                  Сводная аналитика по транспортировкам за выбранный период.
                 </Typography>
               </CardContent>
             </CardActionArea>
